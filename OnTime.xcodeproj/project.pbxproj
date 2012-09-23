@@ -15,6 +15,8 @@
 		6A3CC481160EEE7800F4A12A /* OnTimeAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A3CC480160EEE7800F4A12A /* OnTimeAppDelegate.m */; };
 		6A3CC484160EEE7800F4A12A /* OnTimeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A3CC483160EEE7800F4A12A /* OnTimeViewController.m */; };
 		6A3CC487160EEE7800F4A12A /* OnTimeViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6A3CC485160EEE7800F4A12A /* OnTimeViewController.xib */; };
+		6A3CC48E160EEF5300F4A12A /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A3CC48D160EEF5300F4A12A /* MapKit.framework */; };
+		6A3CC490160EEFD200F4A12A /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A3CC48F160EEFD200F4A12A /* CoreLocation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +33,8 @@
 		6A3CC482160EEE7800F4A12A /* OnTimeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OnTimeViewController.h; sourceTree = "<group>"; };
 		6A3CC483160EEE7800F4A12A /* OnTimeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OnTimeViewController.m; sourceTree = "<group>"; };
 		6A3CC486160EEE7800F4A12A /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/OnTimeViewController.xib; sourceTree = "<group>"; };
+		6A3CC48D160EEF5300F4A12A /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
+		6A3CC48F160EEFD200F4A12A /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,6 +42,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6A3CC490160EEFD200F4A12A /* CoreLocation.framework in Frameworks */,
+				6A3CC48E160EEF5300F4A12A /* MapKit.framework in Frameworks */,
 				6A3CC471160EEE7700F4A12A /* UIKit.framework in Frameworks */,
 				6A3CC473160EEE7700F4A12A /* Foundation.framework in Frameworks */,
 				6A3CC475160EEE7700F4A12A /* CoreGraphics.framework in Frameworks */,
@@ -50,6 +56,8 @@
 		6A3CC461160EEE7700F4A12A = {
 			isa = PBXGroup;
 			children = (
+				6A3CC48F160EEFD200F4A12A /* CoreLocation.framework */,
+				6A3CC48D160EEF5300F4A12A /* MapKit.framework */,
 				6A3CC476160EEE7700F4A12A /* OnTime */,
 				6A3CC46F160EEE7700F4A12A /* Frameworks */,
 				6A3CC46D160EEE7700F4A12A /* Products */,

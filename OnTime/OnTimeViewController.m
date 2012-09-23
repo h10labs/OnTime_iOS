@@ -14,10 +14,30 @@
 
 @implementation OnTimeViewController
 
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    if (self) {
+        locationManager = [[CLLocationManager alloc] init];
+        [locationManager setDesiredAccuracy:kCLLocationAccuracyNearestTenMeters];
+    }
+    return self;
+}
+
+- (void)mapView:(MKMapView *)view didUpdateUserLocation:(MKUserLocation *)userLocation {
+    CLLocation *location = [userLocation location];
+    CLLocationCoordinate2D coords = [location coordinate];
+    MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(coords, 500, 500);
+    [userMapView setRegion:region animated:YES];
+    [activityIndicator stopAnimating];
+    [self getNearbyStations:location];
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
+    [activityIndicator startAnimating];
+    [userMapView setShowsUserLocation:YES];
 }
 
 - (void)viewDidUnload
@@ -29,6 +49,14 @@
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
     return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
+}
+
+- (IBAction)requestNotification:(id)sender {
+    NSLog(@"requesting");
+}
+
+- (void)getNearbyStations:(CLLocation *)currentLocation {
+    NSLog(@"get location for %@", currentLocation);
 }
 
 @end
