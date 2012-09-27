@@ -52,7 +52,8 @@
 }
 
 - (IBAction)requestNotification:(id)sender {
-    NSLog(@"requesting");
+    NSString *methodString = [methodToGetToStation titleForSegmentAtIndex:[methodToGetToStation selectedSegmentIndex]];
+    NSLog(@"requesting, with method of %@", methodString);
 }
 
 - (void)getNearbyStations:(CLLocation *)currentLocation {
