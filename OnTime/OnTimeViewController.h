@@ -9,15 +9,17 @@
 #import <UIKit/UIKit.h>
 #import <MapKit/MapKit.h>
 
-@interface OnTimeViewController : UIViewController <MKMapViewDelegate> {
+@interface OnTimeViewController : UIViewController <MKMapViewDelegate, UITableViewDataSource,
+                                                    UITableViewDelegate> {
     CLLocationManager *locationManager;
     
-    IBOutlet MKMapView *userMapView;
+    __weak IBOutlet MKMapView *userMapView;
     __weak IBOutlet UIActivityIndicatorView *activityIndicator;
     __weak IBOutlet UIButton *requestNotificationButton;
     __weak IBOutlet UISegmentedControl *methodToGetToStation;
+    __weak IBOutlet UITableView *tableView;
 }
 
-- (void)getNearbyStations:(CLLocation *)currentLocation;
+
 - (IBAction)requestNotification:(id)sender;
 @end
