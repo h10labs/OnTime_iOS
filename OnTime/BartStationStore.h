@@ -10,6 +10,12 @@
 #import "BartStation.h"
 #import "OnTimeManagerProtocol.h"
 
+extern NSString * const methodKey;
+extern NSString * const sourceStationKey;
+extern NSString * const destinationStationKey;
+
 @interface BartStationStore : NSObject <OnTimeManagerProtocol>
 
+@property (nonatomic, strong) NSMutableArray *nearbyStations;
+@property (nonatomic, strong) NSMutableArray *selectedStationIndices;
 @end

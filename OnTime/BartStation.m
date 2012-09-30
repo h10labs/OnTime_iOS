@@ -9,5 +9,6 @@
 #import "BartStation.h"
 
 @implementation BartStation
+@synthesize stationId;
 @synthesize streetAddress;
 @end

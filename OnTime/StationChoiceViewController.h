@@ -9,9 +9,11 @@
 #import <UIKit/UIKit.h>
 
 @interface StationChoiceViewController : UITableViewController {
-    NSArray *stationsArray;
+    __weak NSArray *stationsArray;
+    void (^selectionMade)(int stationIndex);
 }
 
-- (id)initWithStations:(NSArray *) stations;
+- (id)initWithStations:(NSArray *) stations
+        withCompletion:(void (^)(int stationIndex))block;
 
 @end

@@ -7,23 +7,25 @@
 //
 
 #import "StationChoiceViewController.h"
-
+#import "Station.h"
 @interface StationChoiceViewController ()
 
 @end
 
 @implementation StationChoiceViewController
 
-- (id)initWithStations:(NSArray*)stations {
+- (id)initWithStations:(NSArray*)stations
+        withCompletion:(void (^)(int))block{
     self = [super initWithStyle:UITableViewStyleGrouped];
     if (self){
         stationsArray = stations;
+        selectionMade = block;
     }
     return self;
 }
 
 - (id)initWithStyle:(UITableViewStyle)style {
-    return [self initWithStations:nil];
+    return [self initWithStations:nil withCompletion:nil];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -38,13 +40,17 @@
                                       reuseIdentifier:@"UITableViewCell"];
     }
     
-    NSString *cellText = [NSString stringWithFormat:@"station %d", [indexPath row]];
+    Station *station = [stationsArray objectAtIndex:[indexPath row]];
+    NSString *cellText = [station stationName];
     [[cell textLabel] setText:cellText];
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     NSLog(@"selected row is %d", [indexPath row]);
+    if (selectionMade){
+        selectionMade([indexPath row]);
+    }
     [[self navigationController] popViewControllerAnimated:YES];
 }
 @end

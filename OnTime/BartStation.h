@@ -10,5 +10,6 @@
 
 @interface BartStation : Station
 
-@property (nonatomic, strong) NSString* streetAddress;
+@property (nonatomic, strong) NSString *stationId;  
+@property (nonatomic, strong) NSString *streetAddress;
 @end

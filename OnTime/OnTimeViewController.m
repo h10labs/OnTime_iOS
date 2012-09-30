@@ -66,17 +66,17 @@
 
 
 // table view data source overrides
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+- (NSInteger)tableView:(UITableView *)tv numberOfRowsInSection:(NSInteger)section {
     // currently only holds one row in each section
     return 1;
 }
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tv {
     // currently there are two sections: source and destination
     return 2;
 }
 
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+- (NSString *)tableView:(UITableView *)tv titleForHeaderInSection:(NSInteger)section {
     NSString *headerTitle = nil;
     if (section == 0){
         headerTitle = @"Source";
@@ -94,33 +94,44 @@
                                       reuseIdentifier:@"UITableViewCell"];
         [cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
     }
-    
-    // place holder for now
-    NSString *cellText = nil;
-    if ([indexPath section] == 0) {
-        cellText = @"source";
-    } else {
-        cellText = @"destination";
+
+    NSString *cellText = @"select station";
+    Station *station = [[BartStationStore sharedStore] getSelecedStation:[indexPath section]];
+    if (station){
+        cellText = [station stationName];
     }
     [[cell textLabel] setText:cellText];
     return cell;
 }
 
 // table view delegate overrides
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSArray *stations = [NSArray arrayWithObjects:@"station 1",
-                         @"station 2", nil];
+- (void)tableView:(UITableView *)tv didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSArray *stations = [[BartStationStore sharedStore] nearbyStations];
+    
+    NSInteger groupIndex = [indexPath section];
+    // block code to execute when the selection is made
+    void (^stationSelectionMade)() = ^void(NSInteger stationIndex) {
+        [[BartStationStore sharedStore] selectStation:stationIndex inGroup:groupIndex];
+        [tableView reloadData];
+    };
     StationChoiceViewController *scvc = [[StationChoiceViewController alloc]
-                                         initWithStations:stations];
+                                         initWithStations:stations
+                                         withCompletion:stationSelectionMade];
     [[self navigationController] pushViewController:scvc animated:YES];
 }
 
-// app related methods
+// action methods
 
 - (IBAction)requestNotification:(id)sender {
     NSString *methodString = [methodToGetToStation
                               titleForSegmentAtIndex:[methodToGetToStation selectedSegmentIndex]];
     NSMutableDictionary *requestData = [[NSMutableDictionary alloc] init];
+    [requestData setObject:methodString forKey:methodKey];
+    
+    BartStation *sourceStation = (BartStation *)[[BartStationStore sharedStore] getSelecedStation:0];
+    BartStation *destinationStation = (BartStation *)[[BartStationStore sharedStore] getSelecedStation:1];
+    [requestData setObject:[sourceStation stationId] forKey:sourceStationKey];
+    [requestData setObject:[destinationStation stationId] forKey:destinationStationKey];
     
     void (^registerNotification)(NSDictionary *notificationData, NSError *err) =
         ^void(NSDictionary *notificationData, NSError *err) {
@@ -128,7 +139,6 @@
     };
     [[BartStationStore sharedStore] requestNotification:requestData
                                          withCompletion:registerNotification];
-    NSLog(@"requesting, with method of %@", methodString);
 }
 
 @end
