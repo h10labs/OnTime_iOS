@@ -36,13 +36,15 @@
          cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UITableViewCell"];
     if (!cell){
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle
                                       reuseIdentifier:@"UITableViewCell"];
     }
     
     Station *station = [stationsArray objectAtIndex:[indexPath row]];
     NSString *cellText = [station stationName];
+    NSString *cellDetailText = [station streetAddress];
     [[cell textLabel] setText:cellText];
+    [[cell detailTextLabel] setText:cellDetailText];
     return cell;
 }
 

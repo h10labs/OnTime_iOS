@@ -10,19 +10,25 @@
 #import "OnTimeConnection.h"
 #import "BartStation.h"
 
-NSString * const bartStationUrlTemplate = @"http://ontime.nodejitsu.com/bart/locate/?lat=%f&long=%f";
-NSString * const bartNotificationUrl = @"";
+const NSInteger limitedStationNumber = 3;
+
+//NSString * const bartStationUrlTemplate = @"http://ontime.nodejitsu.com/bart/locate/?lat=%f&long=%f";
+NSString * const bartStationUrlTemplate = @"http://localhost:8000/bart/locate/?lat=%f&long=%f";
+NSString * const bartNotificationUrl = @"http://localhost:8000/bart/notify";
 
 // keys for stations json objects
 NSString * const successKey = @"success";
 NSString * const stationDictKey = @"stations";
 NSString * const stationIdKey = @"id";
 NSString * const stationNameKey = @"name";
+NSString * const stationAddressKey = @"address";
 
 // keys for notification request
 NSString * const methodKey = @"method";
-NSString * const sourceStationKey = @"source";
-NSString * const destinationStationKey = @"destination";
+NSString * const sourceStationKey = @"start";
+NSString * const destinationStationKey = @"end";
+NSString * const latitudeKey = @"lat";
+NSString * const longitudeKey = @"long"; 
 
 @implementation BartStationStore
 @synthesize nearbyStations;
@@ -58,6 +64,7 @@ NSString * const destinationStationKey = @"destination";
                     BartStation *station = [[BartStation alloc] init];
                     [station setStationId:[stationDict objectForKey:stationIdKey]];
                     [station setStationName:[stationDict objectForKey:stationNameKey]];
+                    [station setStreetAddress:[stationDict objectForKey:stationAddressKey]];
                     [[self nearbyStations] addObject:station];
                 }
             } else {
@@ -74,6 +81,15 @@ NSString * const destinationStationKey = @"destination";
     [connection setCompletionBlock:processNearbyStations];
     [connection start];
     NSLog(@"get location for %@", currentLocation);
+}
+
+- (NSArray *)nearbyStations:(NSInteger)numStations {
+    NSArray *stations = [self nearbyStations];
+    NSRange range;
+    range.location = 0;
+    range.length = numStations;
+    NSArray *limitedStations = [stations subarrayWithRange:range];
+    return limitedStations;
 }
 
 - (void)selectStation:(NSInteger)stationIndex inGroup:(NSInteger)groupIndex {
@@ -105,7 +121,13 @@ NSString * const destinationStationKey = @"destination";
              withCompletion:(void (^)(NSDictionary *notificationData, NSError *err))block {
     NSURL *url = [NSURL URLWithString:bartNotificationUrl];
     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url];
+    NSData *postData = [NSJSONSerialization dataWithJSONObject:requestData
+                                                       options:0
+                                                         error:nil];
+    
     [req setHTTPMethod:@"POST"];
+    [req setHTTPBody:postData];
+    [req setValue:@"application/json" forHTTPHeaderField:@"content-type"];
     
     OnTimeConnection *connection = [[OnTimeConnection alloc] initWithRequest:req];
     [connection setCompletionBlock:block];

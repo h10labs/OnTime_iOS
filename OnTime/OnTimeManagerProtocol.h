@@ -16,6 +16,9 @@
 + (id<OnTimeManagerProtocol>)sharedStore;
 - (void)getNearbyStations:(CLLocation *)currentLocation
            withCompletion:(void (^)(NSArray *stations, NSError *err))block;
+
+-  (NSArray *) nearbyStations:(NSInteger)numStations;
+
 - (void)requestNotification:(NSDictionary *)requestData
              withCompletion:(void (^)(NSDictionary *notificationData, NSError *err))block;
 - (void)selectStation:(NSInteger)stationIndex inGroup:(NSInteger)groupIndex;

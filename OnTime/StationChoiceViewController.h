@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface StationChoiceViewController : UITableViewController {
-    __weak NSArray *stationsArray;
+    NSArray *stationsArray;
     void (^selectionMade)(int stationIndex);
 }
 

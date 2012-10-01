@@ -10,12 +10,16 @@
 #import "BartStation.h"
 #import "OnTimeManagerProtocol.h"
 
+extern const NSInteger limitedStationNumber;
 extern NSString * const methodKey;
 extern NSString * const sourceStationKey;
 extern NSString * const destinationStationKey;
+extern NSString * const latitudeKey;
+extern NSString * const longitudeKey;
 
 @interface BartStationStore : NSObject <OnTimeManagerProtocol>
 
 @property (nonatomic, strong) NSMutableArray *nearbyStations;
 @property (nonatomic, strong) NSMutableArray *selectedStationIndices;
+
 @end

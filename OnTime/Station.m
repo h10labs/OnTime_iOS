@@ -9,6 +9,12 @@
 #import "Station.h"
 
 @implementation Station
+@synthesize stationId;
 @synthesize stationName;
 @synthesize location;
+@synthesize streetAddress;
+
+- (NSString *)description {
+    return [NSString stringWithFormat:@"%@", [self stationName]];
+}
 @end

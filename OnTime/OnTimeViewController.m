@@ -106,9 +106,15 @@
 
 // table view delegate overrides
 - (void)tableView:(UITableView *)tv didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSArray *stations = [[BartStationStore sharedStore] nearbyStations];
-    
     NSInteger groupIndex = [indexPath section];
+    
+    NSArray *stations = nil;
+    if (groupIndex == 0) {
+        stations = [[BartStationStore sharedStore] nearbyStations:limitedStationNumber];
+    } else {
+        stations = [[BartStationStore sharedStore] nearbyStations];
+    }
+    
     // block code to execute when the selection is made
     void (^stationSelectionMade)() = ^void(NSInteger stationIndex) {
         [[BartStationStore sharedStore] selectStation:stationIndex inGroup:groupIndex];
@@ -128,14 +134,48 @@
     NSMutableDictionary *requestData = [[NSMutableDictionary alloc] init];
     [requestData setObject:methodString forKey:methodKey];
     
-    BartStation *sourceStation = (BartStation *)[[BartStationStore sharedStore] getSelecedStation:0];
-    BartStation *destinationStation = (BartStation *)[[BartStationStore sharedStore] getSelecedStation:1];
+    BartStation *sourceStation = (BartStation *)[[BartStationStore sharedStore]
+                                                 getSelecedStation:0];
+    BartStation *destinationStation = (BartStation *)[[BartStationStore sharedStore]
+                                                      getSelecedStation:1];
+    // error checking
+    if (!sourceStation || !destinationStation){
+        UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Not a valid trip"
+                                                     message:@"Please select source and destination"
+                                                    delegate:nil
+                                           cancelButtonTitle:@"OK"
+                                           otherButtonTitles:nil];
+        [av show];
+        return;
+    } else if (sourceStation == destinationStation) {
+        UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Not a valid trip"
+                                                    message:@"Please pick two different stations"
+                                                   delegate:nil
+                                          cancelButtonTitle:@"OK"
+                                          otherButtonTitles:nil];
+        [av show];
+        return;
+    }
+    
     [requestData setObject:[sourceStation stationId] forKey:sourceStationKey];
     [requestData setObject:[destinationStation stationId] forKey:destinationStationKey];
     
+    CLLocationCoordinate2D coords = [[locationManager location] coordinate];
+    NSString *longitude = [NSString stringWithFormat:@"%f", coords.longitude];
+    NSString *latitude = [NSString stringWithFormat:@"%f", coords.latitude];
+    [requestData setObject:longitude forKey:longitudeKey];
+    [requestData setObject:latitude forKey:latitudeKey];
     void (^registerNotification)(NSDictionary *notificationData, NSError *err) =
         ^void(NSDictionary *notificationData, NSError *err) {
-        
+            NSLog(@"response data is %@", notificationData);
+            // create local notification
+            UILocalNotification *notification = [[UILocalNotification alloc] init];
+            NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:10.0];
+            [notification setFireDate:scheduledTime];
+            [notification setAlertAction:@"OnTime!"];
+            [notification setAlertBody:@"Leave now!"];
+            [notification setHasAction:NO];
+            [[UIApplication sharedApplication] scheduleLocalNotification:notification];
     };
     [[BartStationStore sharedStore] requestNotification:requestData
                                          withCompletion:registerNotification];

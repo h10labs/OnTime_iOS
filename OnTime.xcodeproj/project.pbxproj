@@ -17,6 +17,11 @@
 		6A3CC487160EEE7800F4A12A /* OnTimeViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6A3CC485160EEE7800F4A12A /* OnTimeViewController.xib */; };
 		6A3CC48E160EEF5300F4A12A /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A3CC48D160EEF5300F4A12A /* MapKit.framework */; };
 		6A3CC490160EEFD200F4A12A /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A3CC48F160EEFD200F4A12A /* CoreLocation.framework */; };
+		6A9E6CD51614298200CFF4DD /* StationChoiceViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A9E6CD31614298200CFF4DD /* StationChoiceViewController.m */; };
+		6A9E6D1B1616CECC00CFF4DD /* Station.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A9E6D1A1616CECC00CFF4DD /* Station.m */; };
+		6A9E6D1E1616CF6D00CFF4DD /* BartStation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A9E6D1D1616CF6D00CFF4DD /* BartStation.m */; };
+		6A9E6D251616D0C400CFF4DD /* OnTimeConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A9E6D241616D0C300CFF4DD /* OnTimeConnection.m */; };
+		6A9E6D2A1616D57300CFF4DD /* BartStationStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A9E6D291616D57200CFF4DD /* BartStationStore.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +40,17 @@
 		6A3CC486160EEE7800F4A12A /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/OnTimeViewController.xib; sourceTree = "<group>"; };
 		6A3CC48D160EEF5300F4A12A /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		6A3CC48F160EEFD200F4A12A /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		6A9E6CD21614298200CFF4DD /* StationChoiceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StationChoiceViewController.h; sourceTree = "<group>"; };
+		6A9E6CD31614298200CFF4DD /* StationChoiceViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StationChoiceViewController.m; sourceTree = "<group>"; };
+		6A9E6D191616CECC00CFF4DD /* Station.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Station.h; sourceTree = "<group>"; };
+		6A9E6D1A1616CECC00CFF4DD /* Station.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Station.m; sourceTree = "<group>"; };
+		6A9E6D1C1616CF6D00CFF4DD /* BartStation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BartStation.h; sourceTree = "<group>"; };
+		6A9E6D1D1616CF6D00CFF4DD /* BartStation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BartStation.m; sourceTree = "<group>"; };
+		6A9E6D231616D0C300CFF4DD /* OnTimeConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OnTimeConnection.h; sourceTree = "<group>"; };
+		6A9E6D241616D0C300CFF4DD /* OnTimeConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OnTimeConnection.m; sourceTree = "<group>"; };
+		6A9E6D271616D4C200CFF4DD /* OnTimeManagerProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OnTimeManagerProtocol.h; sourceTree = "<group>"; };
+		6A9E6D281616D57200CFF4DD /* BartStationStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BartStationStore.h; sourceTree = "<group>"; };
+		6A9E6D291616D57200CFF4DD /* BartStationStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BartStationStore.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,8 +72,6 @@
 		6A3CC461160EEE7700F4A12A = {
 			isa = PBXGroup;
 			children = (
-				6A3CC48F160EEFD200F4A12A /* CoreLocation.framework */,
-				6A3CC48D160EEF5300F4A12A /* MapKit.framework */,
 				6A3CC476160EEE7700F4A12A /* OnTime */,
 				6A3CC46F160EEE7700F4A12A /* Frameworks */,
 				6A3CC46D160EEE7700F4A12A /* Products */,
@@ -75,6 +89,8 @@
 		6A3CC46F160EEE7700F4A12A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6A3CC48F160EEFD200F4A12A /* CoreLocation.framework */,
+				6A3CC48D160EEF5300F4A12A /* MapKit.framework */,
 				6A3CC470160EEE7700F4A12A /* UIKit.framework */,
 				6A3CC472160EEE7700F4A12A /* Foundation.framework */,
 				6A3CC474160EEE7700F4A12A /* CoreGraphics.framework */,
@@ -85,12 +101,23 @@
 		6A3CC476160EEE7700F4A12A /* OnTime */ = {
 			isa = PBXGroup;
 			children = (
+				6A9E6D271616D4C200CFF4DD /* OnTimeManagerProtocol.h */,
+				6A9E6D281616D57200CFF4DD /* BartStationStore.h */,
+				6A9E6D291616D57200CFF4DD /* BartStationStore.m */,
+				6A9E6D231616D0C300CFF4DD /* OnTimeConnection.h */,
+				6A9E6D241616D0C300CFF4DD /* OnTimeConnection.m */,
 				6A3CC47F160EEE7700F4A12A /* OnTimeAppDelegate.h */,
 				6A3CC480160EEE7800F4A12A /* OnTimeAppDelegate.m */,
 				6A3CC482160EEE7800F4A12A /* OnTimeViewController.h */,
 				6A3CC483160EEE7800F4A12A /* OnTimeViewController.m */,
 				6A3CC485160EEE7800F4A12A /* OnTimeViewController.xib */,
+				6A9E6CD21614298200CFF4DD /* StationChoiceViewController.h */,
+				6A9E6CD31614298200CFF4DD /* StationChoiceViewController.m */,
 				6A3CC477160EEE7700F4A12A /* Supporting Files */,
+				6A9E6D191616CECC00CFF4DD /* Station.h */,
+				6A9E6D1A1616CECC00CFF4DD /* Station.m */,
+				6A9E6D1C1616CF6D00CFF4DD /* BartStation.h */,
+				6A9E6D1D1616CF6D00CFF4DD /* BartStation.m */,
 			);
 			path = OnTime;
 			sourceTree = "<group>";
@@ -173,6 +200,11 @@
 				6A3CC47D160EEE7700F4A12A /* main.m in Sources */,
 				6A3CC481160EEE7800F4A12A /* OnTimeAppDelegate.m in Sources */,
 				6A3CC484160EEE7800F4A12A /* OnTimeViewController.m in Sources */,
+				6A9E6CD51614298200CFF4DD /* StationChoiceViewController.m in Sources */,
+				6A9E6D1B1616CECC00CFF4DD /* Station.m in Sources */,
+				6A9E6D1E1616CF6D00CFF4DD /* BartStation.m in Sources */,
+				6A9E6D251616D0C400CFF4DD /* OnTimeConnection.m in Sources */,
+				6A9E6D2A1616D57300CFF4DD /* BartStationStore.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -288,6 +320,7 @@
 				6A3CC48C160EEE7800F4A12A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

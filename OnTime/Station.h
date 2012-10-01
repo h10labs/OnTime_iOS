@@ -13,7 +13,9 @@
     
 }
 
+@property (nonatomic, strong) NSString *stationId;
 @property (nonatomic, strong) NSString *stationName;
 @property (nonatomic) CLLocationCoordinate2D location;
+@property (nonatomic, strong) NSString *streetAddress;
 
 @end
