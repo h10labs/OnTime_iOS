@@ -10,11 +10,49 @@
 #import "StationChoiceViewController.h"
 #import "BartStationStore.h"
 
-@interface OnTimeViewController ()
+// Navigation bar related constants
+static NSString * const OnTimeTitle = @"OnTime Bart";
 
+// Table view constants
+static NSString * const sourceHeader = @"Source";
+static NSString * const destinationHeader = @"Destination";
+static NSString * const defaultCellText = @"Select station";
+
+// Error titles and messages
+static NSString * const invalidTripTitle = @"Not a valid trip";
+static NSString * const missingStationMessage =
+    @"Please select source and destination.";
+static NSString * const identicalStationMessage =
+    @"Please pick two different stations.";
+
+static NSString * const nearbyStationErrorTitle = @"Could not get nearby stations.";
+static NSString * const notificationErrorTitle = @"Could not submit notification request.";
+static NSString * const errorMessage = @"Please try again later.";
+static NSString * const errorButtonTitle = @"OK";
+
+static NSString * const missingParameterMessage = @"Not all parameters were provided.";
+static NSString * const failedToCreateNoficationMessage = @"Failed to create notification.";
+static NSString * const noTimeAvailableMessage = @"No time is available.";
+static NSString * const defaultNotificationErrorMessage= @"An error occurred. Please try again.";
+
+// Notification related constants
+static NSString * const notificationTitle = @"OnTime!";
+static NSString * const noNotificationTitle = @"No Notification";
+
+// Notification data dictionary keys
+static NSString * const successKey = @"success";
+static NSString * const errorCodeKey = @"errorCode";
+static NSString * const bufferTimeKey = @"bufferTime";
+static NSString * const durationKey = @"duration";
+static NSString * const estimateKey = @"estimates";
+
+
+@interface OnTimeViewController ()
+- (void)handleNotificationData:(NSDictionary *)notificationData;
 @end
 
 @implementation OnTimeViewController
+
 
 // controller methods
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
@@ -22,6 +60,9 @@
     if (self) {
         locationManager = [[CLLocationManager alloc] init];
         [locationManager setDesiredAccuracy:kCLLocationAccuracyNearestTenMeters];
+
+        // set navigation bar title
+        [[self navigationItem] setTitle:OnTimeTitle];
     }
     return self;
 }
@@ -36,7 +77,16 @@
     void (^displayNearbyStations)(NSArray *nearbyStations, NSError *err) =
         ^void(NSArray *nearbyStations, NSError *err){
             [activityIndicator stopAnimating];
-            NSLog(@"ready to display stations, %@", nearbyStations);
+            if (err) {
+                // display the error message if retrieve nearby stations was
+                // not successful
+                UIAlertView *errorAlert = [[UIAlertView alloc] initWithTitle:nearbyStationErrorTitle
+                                                                     message:errorMessage
+                                                                    delegate:nil
+                                                           cancelButtonTitle:errorButtonTitle
+                                                           otherButtonTitles:nil];
+                [errorAlert show];
+            }
     };
     [[BartStationStore sharedStore] getNearbyStations:location
                                        withCompletion:displayNearbyStations];
@@ -79,9 +129,9 @@
 - (NSString *)tableView:(UITableView *)tv titleForHeaderInSection:(NSInteger)section {
     NSString *headerTitle = nil;
     if (section == 0){
-        headerTitle = @"Source";
+        headerTitle = sourceHeader;
     } else if (section == 1){
-        headerTitle = @"Destination";
+        headerTitle = destinationHeader;
     }
     return headerTitle;
 }
@@ -95,7 +145,9 @@
         [cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
     }
 
-    NSString *cellText = @"select station";
+    NSString *cellText = defaultCellText;
+
+    // if station is selected show the station name as the cell text
     Station *station = [[BartStationStore sharedStore] getSelecedStation:[indexPath section]];
     if (station){
         cellText = [station stationName];
@@ -109,10 +161,13 @@
     NSInteger groupIndex = [indexPath section];
     
     NSArray *stations = nil;
+    NSString *titleString = nil;
     if (groupIndex == 0) {
         stations = [[BartStationStore sharedStore] nearbyStations:limitedStationNumber];
+        titleString = sourceHeader;
     } else {
         stations = [[BartStationStore sharedStore] nearbyStations];
+        titleString = destinationHeader;
     }
     
     // block code to execute when the selection is made
@@ -122,6 +177,7 @@
     };
     StationChoiceViewController *scvc = [[StationChoiceViewController alloc]
                                          initWithStations:stations
+                                         withTitle:titleString
                                          withCompletion:stationSelectionMade];
     [[self navigationController] pushViewController:scvc animated:YES];
 }
@@ -140,18 +196,18 @@
                                                       getSelecedStation:1];
     // error checking
     if (!sourceStation || !destinationStation){
-        UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Not a valid trip"
-                                                     message:@"Please select source and destination"
+        UIAlertView *av = [[UIAlertView alloc] initWithTitle:invalidTripTitle
+                                                     message:missingStationMessage
                                                     delegate:nil
-                                           cancelButtonTitle:@"OK"
+                                           cancelButtonTitle:errorButtonTitle
                                            otherButtonTitles:nil];
         [av show];
         return;
     } else if (sourceStation == destinationStation) {
-        UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Not a valid trip"
-                                                    message:@"Please pick two different stations"
+        UIAlertView *av = [[UIAlertView alloc] initWithTitle:invalidTripTitle
+                                                    message:identicalStationMessage
                                                    delegate:nil
-                                          cancelButtonTitle:@"OK"
+                                          cancelButtonTitle:errorButtonTitle
                                           otherButtonTitles:nil];
         [av show];
         return;
@@ -166,19 +222,72 @@
     [requestData setObject:longitude forKey:longitudeKey];
     [requestData setObject:latitude forKey:latitudeKey];
     void (^registerNotification)(NSDictionary *notificationData, NSError *err) =
-        ^void(NSDictionary *notificationData, NSError *err) {
-            NSLog(@"response data is %@", notificationData);
-            // create local notification
-            UILocalNotification *notification = [[UILocalNotification alloc] init];
-            NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:10.0];
-            [notification setFireDate:scheduledTime];
-            [notification setAlertAction:@"OnTime!"];
-            [notification setAlertBody:@"Leave now!"];
-            [notification setHasAction:NO];
-            [[UIApplication sharedApplication] scheduleLocalNotification:notification];
+    ^void(NSDictionary *notificationData, NSError *err) {
+        if (err){
+            // display the error message if retrieve nearby stations was
+            // not successful
+            UIAlertView *errorAlert = [[UIAlertView alloc] initWithTitle:notificationErrorTitle
+                                                                 message:errorMessage
+                                                                delegate:nil
+                                                       cancelButtonTitle:errorButtonTitle
+                                                       otherButtonTitles:nil];
+            [errorAlert show];
+            return;
+        }
+        [self handleNotificationData:notificationData];
+
     };
     [[BartStationStore sharedStore] requestNotification:requestData
                                          withCompletion:registerNotification];
 }
 
+// private helper methods
+
+- (void)handleNotificationData:(NSDictionary *)notificationData {
+    NSLog(@"response data is %@", notificationData);
+
+    id successValue = [notificationData objectForKey:successKey];
+    if (![successValue boolValue]){
+        int errorCode = [[notificationData objectForKey:errorCodeKey] intValue];
+        NSString *noNotificationErrorMessage = nil;
+        switch (errorCode){
+            case 1:
+                noNotificationErrorMessage = missingStationMessage;
+                break;
+            case 2:
+                noNotificationErrorMessage = failedToCreateNoficationMessage;
+                break;
+            case 3:
+                noNotificationErrorMessage = noTimeAvailableMessage;
+                break;
+            default:
+                noNotificationErrorMessage = defaultNotificationErrorMessage;
+                break;
+        }
+        UIAlertView *errorAlert = [[UIAlertView alloc] initWithTitle:noNotificationTitle
+                                                             message:noNotificationErrorMessage
+                                                            delegate:nil
+                                                   cancelButtonTitle:errorButtonTitle
+                                                   otherButtonTitles:nil];
+        [errorAlert show];
+        return;
+    }
+
+    NSNumber *bufferTime = [notificationData objectForKey:bufferTimeKey];
+    NSNumber *duration = [notificationData objectForKey:durationKey];
+    NSDictionary *estimates = [notificationData objectForKey:estimateKey];
+    
+    // create local notification
+    UILocalNotification *notification = [[UILocalNotification alloc] init];
+    NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:10.0];
+    [notification setFireDate:scheduledTime];
+    [notification setAlertAction:notificationTitle];
+    [notification setAlertBody:@"Leave now!"];
+    [notification setHasAction:NO];
+    [[UIApplication sharedApplication] scheduleLocalNotification:notification];
+
+    // reset current selection since the notification was successful
+    [[BartStationStore sharedStore] resetCurrentSelectedStations];
+    [tableView reloadData];
+}
 @end

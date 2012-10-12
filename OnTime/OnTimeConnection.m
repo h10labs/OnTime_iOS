@@ -8,7 +8,8 @@
 
 #import "OnTimeConnection.h"
 
-// why do we need this again???
+// this is necessary to keep the OnTimeConnection around after the caller's
+// frame goes out of scope.
 static NSMutableArray *sharedConnectionList = nil;
 
 @implementation OnTimeConnection

@@ -13,7 +13,9 @@
     void (^selectionMade)(int stationIndex);
 }
 
+// designated initializer
 - (id)initWithStations:(NSArray *) stations
+             withTitle:(NSString *) title
         withCompletion:(void (^)(int stationIndex))block;
 
 @end

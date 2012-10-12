@@ -10,7 +10,7 @@
 
 @interface OnTimeConnection : NSObject
 <NSURLConnectionDelegate, NSURLConnectionDataDelegate> {
-    NSURLConnection *internalConnection;
+    NSURLConnection *internalConnection; // why is this necessary??
     NSMutableData *container;
 }
 

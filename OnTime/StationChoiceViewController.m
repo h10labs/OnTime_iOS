@@ -8,24 +8,29 @@
 
 #import "StationChoiceViewController.h"
 #import "Station.h"
-@interface StationChoiceViewController ()
 
-@end
+static NSString * const backLabel = @"Back";
 
 @implementation StationChoiceViewController
 
 - (id)initWithStations:(NSArray*)stations
+             withTitle:(NSString *)title
         withCompletion:(void (^)(int))block{
     self = [super initWithStyle:UITableViewStyleGrouped];
     if (self){
         stationsArray = stations;
         selectionMade = block;
+
+        // set up the navigation bar content
+        [[self navigationItem] setTitle:title];
+        [[[self navigationItem] rightBarButtonItem] setTitle:backLabel];
     }
     return self;
 }
 
 - (id)initWithStyle:(UITableViewStyle)style {
-    return [self initWithStations:nil withCompletion:nil];
+    // overriding the parent class designated initializer
+    return [self initWithStations:nil withTitle:nil withCompletion:nil];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {

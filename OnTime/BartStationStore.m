@@ -36,6 +36,7 @@ NSString * const longitudeKey = @"long";
 + (BartStationStore *)sharedStore {
     static BartStationStore *stationStore = nil;
     if (!stationStore){
+        // set up the singleton instance
         stationStore = [[BartStationStore alloc] init];
         [stationStore setNearbyStations:[[NSMutableArray alloc] init]];
         [stationStore setSelectedStationIndices:[NSMutableArray
@@ -47,13 +48,20 @@ NSString * const longitudeKey = @"long";
 
 - (void)getNearbyStations:(CLLocation *)currentLocation
            withCompletion: (void (^)(NSArray *stations, NSError *err))block {
+
+    // set up the HTTP GET request to retrieve nearby stations of the given
+    // location.
     CLLocationCoordinate2D coords = [currentLocation coordinate];
     NSString *urlString = [NSString stringWithFormat:bartStationUrlTemplate,
                            coords.latitude, coords.longitude];
     NSURL *url = [NSURL URLWithString:urlString];
     NSURLRequest *req = [NSURLRequest requestWithURL:url];
     OnTimeConnection *connection = [[OnTimeConnection alloc] initWithRequest:req];
-    
+
+    // define an outer completion block.
+    // this block processes the HTTP response and stores the retrieved nearby
+    // stations; it also calls the input parameter block to perform any additional
+    // task.
     void (^processNearbyStations)(NSDictionary *stationsData, NSError *err) =
     ^void(NSDictionary *stationData, NSError *err){
         NSValue *isSuccessful = [stationData objectForKey:successKey];
@@ -69,13 +77,13 @@ NSString * const longitudeKey = @"long";
                 }
             } else {
                 NSLog(@"success returned false");
+                err = [NSError errorWithDomain:@"Server error" code:1 userInfo:nil];
             }
         } else {
-            // handle error
             NSLog(@"error was returned for getNearbyStations");
         }
         if (block){
-            block(nearbyStations, err);
+            block([self nearbyStations], err);
         }
     };
     [connection setCompletionBlock:processNearbyStations];
@@ -85,6 +93,9 @@ NSString * const longitudeKey = @"long";
 
 - (NSArray *)nearbyStations:(NSInteger)numStations {
     NSArray *stations = [self nearbyStations];
+    // making sure that numStations never exceeds the available station number
+    numStations = numStations > [stations count] ? [stations count] : numStations;
+
     NSRange range;
     range.location = 0;
     range.length = numStations;
@@ -94,7 +105,10 @@ NSString * const longitudeKey = @"long";
 
 - (void)selectStation:(NSInteger)stationIndex inGroup:(NSInteger)groupIndex {
     if (groupIndex < [[self selectedStationIndices] count]){
+        // make sure the group index is within the expected range
         if (stationIndex < [[self nearbyStations] count]){
+            // also check that the station index is within the number of
+            // available nearby stations.
             NSNumber *selectedStationIndex = [NSNumber numberWithInt:stationIndex];
             [[self selectedStationIndices] replaceObjectAtIndex:groupIndex
                                                      withObject:selectedStationIndex];
@@ -110,6 +124,7 @@ NSString * const longitudeKey = @"long";
     NSNumber *selectedStationIndex =  [[self selectedStationIndices] objectAtIndex:groupIndex];
     NSInteger index = [selectedStationIndex integerValue];
     if (index < 0){
+        // if no selection was made for the given group, simply return nil
         return nil;
     }
     BartStation * station = [[self nearbyStations]
@@ -117,8 +132,17 @@ NSString * const longitudeKey = @"long";
     return station;
 }
 
+- (void)resetCurrentSelectedStations {
+    for (NSInteger i = 0; i < [[self selectedStationIndices] count]; ++i){
+        NSNumber *unselectedStationIndex = [NSNumber numberWithInt:-1];
+        [[self selectedStationIndices] replaceObjectAtIndex:i
+                                                 withObject:unselectedStationIndex];
+    }
+}
+
 - (void)requestNotification:(NSDictionary *)requestData
              withCompletion:(void (^)(NSDictionary *notificationData, NSError *err))block {
+    // set up the HTTP POST request for the notification request
     NSURL *url = [NSURL URLWithString:bartNotificationUrl];
     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url];
     NSData *postData = [NSJSONSerialization dataWithJSONObject:requestData
