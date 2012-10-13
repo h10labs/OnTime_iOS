@@ -55,6 +55,9 @@ static NSString * const destinationKey = @"destination";
     [durationTime intValue] - [bufferTime intValue];
     NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:scheduledTimeInSeconds];
 
+
+    // TODO: get the source station name as well as the mode to get to the station.
+    
     // create local notification to notify now
     UILocalNotification *notification = [[UILocalNotification alloc] init];
     NSDate *now = [NSDate date];
