@@ -22,6 +22,7 @@
 		6A9E6D1E1616CF6D00CFF4DD /* BartStation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A9E6D1D1616CF6D00CFF4DD /* BartStation.m */; };
 		6A9E6D251616D0C400CFF4DD /* OnTimeConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A9E6D241616D0C300CFF4DD /* OnTimeConnection.m */; };
 		6A9E6D2A1616D57300CFF4DD /* BartStationStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A9E6D291616D57200CFF4DD /* BartStationStore.m */; };
+		6AA5B21B16293E79001FA806 /* OnTimeNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 6AA5B21A16293E79001FA806 /* OnTimeNotification.m */; };
 		6ADF2585161D514B00CDEA2B /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6ADF2584161D514B00CDEA2B /* Default-568h@2x.png */; };
 /* End PBXBuildFile section */
 
@@ -52,6 +53,8 @@
 		6A9E6D271616D4C200CFF4DD /* OnTimeManagerProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OnTimeManagerProtocol.h; sourceTree = "<group>"; };
 		6A9E6D281616D57200CFF4DD /* BartStationStore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BartStationStore.h; sourceTree = "<group>"; };
 		6A9E6D291616D57200CFF4DD /* BartStationStore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BartStationStore.m; sourceTree = "<group>"; };
+		6AA5B21916293E79001FA806 /* OnTimeNotification.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OnTimeNotification.h; sourceTree = "<group>"; };
+		6AA5B21A16293E79001FA806 /* OnTimeNotification.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OnTimeNotification.m; sourceTree = "<group>"; };
 		6ADF2584161D514B00CDEA2B /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -105,6 +108,8 @@
 			isa = PBXGroup;
 			children = (
 				6A9E6D271616D4C200CFF4DD /* OnTimeManagerProtocol.h */,
+				6AA5B21916293E79001FA806 /* OnTimeNotification.h */,
+				6AA5B21A16293E79001FA806 /* OnTimeNotification.m */,
 				6A9E6D281616D57200CFF4DD /* BartStationStore.h */,
 				6A9E6D291616D57200CFF4DD /* BartStationStore.m */,
 				6A9E6D231616D0C300CFF4DD /* OnTimeConnection.h */,
@@ -209,6 +214,7 @@
 				6A9E6D1E1616CF6D00CFF4DD /* BartStation.m in Sources */,
 				6A9E6D251616D0C400CFF4DD /* OnTimeConnection.m in Sources */,
 				6A9E6D2A1616D57300CFF4DD /* BartStationStore.m in Sources */,
+				6AA5B21B16293E79001FA806 /* OnTimeNotification.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

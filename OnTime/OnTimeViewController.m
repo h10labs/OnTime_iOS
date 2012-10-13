@@ -9,13 +9,14 @@
 #import "OnTimeViewController.h"
 #import "StationChoiceViewController.h"
 #import "BartStationStore.h"
+#import "OnTimeNotification.h"
 
 // Navigation bar related constants
 static NSString * const OnTimeTitle = @"OnTime Bart";
 
 // Table view constants
-static NSString * const sourceHeader = @"Source";
-static NSString * const destinationHeader = @"Destination";
+static NSString * const sourceHeader = @"From";
+static NSString * const destinationHeader = @"To";
 static NSString * const defaultCellText = @"Select station";
 
 // Error titles and messages
@@ -36,7 +37,6 @@ static NSString * const noTimeAvailableMessage = @"No time is available.";
 static NSString * const defaultNotificationErrorMessage= @"An error occurred. Please try again.";
 
 // Notification related constants
-static NSString * const notificationTitle = @"OnTime!";
 static NSString * const noNotificationTitle = @"No Notification";
 
 // Notification data dictionary keys
@@ -44,7 +44,7 @@ static NSString * const successKey = @"success";
 static NSString * const errorCodeKey = @"errorCode";
 static NSString * const bufferTimeKey = @"bufferTime";
 static NSString * const durationKey = @"duration";
-static NSString * const estimateKey = @"estimates";
+static NSString * const estimateKey = @"arrivalEstimates";
 
 
 @interface OnTimeViewController ()
@@ -133,7 +133,7 @@ static NSString * const estimateKey = @"estimates";
     } else if (section == 1){
         headerTitle = destinationHeader;
     }
-    return headerTitle;
+    return [headerTitle stringByAppendingString:@":"];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tv
@@ -275,16 +275,12 @@ static NSString * const estimateKey = @"estimates";
 
     NSNumber *bufferTime = [notificationData objectForKey:bufferTimeKey];
     NSNumber *duration = [notificationData objectForKey:durationKey];
-    NSDictionary *estimates = [notificationData objectForKey:estimateKey];
-    
-    // create local notification
-    UILocalNotification *notification = [[UILocalNotification alloc] init];
-    NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:10.0];
-    [notification setFireDate:scheduledTime];
-    [notification setAlertAction:notificationTitle];
-    [notification setAlertBody:@"Leave now!"];
-    [notification setHasAction:NO];
-    [[UIApplication sharedApplication] scheduleLocalNotification:notification];
+    NSArray *estimates = [notificationData objectForKey:estimateKey];
+    OnTimeNotification *notification =
+        [[OnTimeNotification alloc] initWithNotificationData:estimates
+                                                withDuration:duration
+                                                  withBuffer:bufferTime];
+    [notification scheduleNotification:0];
 
     // reset current selection since the notification was successful
     [[BartStationStore sharedStore] resetCurrentSelectedStations];

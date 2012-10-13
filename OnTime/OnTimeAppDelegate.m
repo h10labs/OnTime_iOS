@@ -26,8 +26,8 @@
 
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
     NSLog(@"Received local notification: %@", notification);
-    UIAlertView *av = [[UIAlertView alloc] initWithTitle:@"Leave now"
-                                                 message:@"Go now"
+    UIAlertView *av = [[UIAlertView alloc] initWithTitle:[notification alertAction]
+                                                 message:[notification alertBody]
                                                 delegate:nil
                                        cancelButtonTitle:@"OK"
                                        otherButtonTitles:nil];
