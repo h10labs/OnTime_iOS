@@ -42,9 +42,6 @@ static NSString * const noNotificationTitle = @"No Notification";
 // Notification data dictionary keys
 static NSString * const successKey = @"success";
 static NSString * const errorCodeKey = @"errorCode";
-static NSString * const bufferTimeKey = @"bufferTime";
-static NSString * const durationKey = @"duration";
-static NSString * const estimateKey = @"arrivalEstimates";
 
 
 @interface OnTimeViewController ()
@@ -273,13 +270,8 @@ static NSString * const estimateKey = @"arrivalEstimates";
         return;
     }
 
-    NSNumber *bufferTime = [notificationData objectForKey:bufferTimeKey];
-    NSNumber *duration = [notificationData objectForKey:durationKey];
-    NSArray *estimates = [notificationData objectForKey:estimateKey];
     OnTimeNotification *notification =
-        [[OnTimeNotification alloc] initWithNotificationData:estimates
-                                                withDuration:duration
-                                                  withBuffer:bufferTime];
+        [[OnTimeNotification alloc] initWithNotificationData:notificationData];
     [notification scheduleNotification:0];
 
     // reset current selection since the notification was successful

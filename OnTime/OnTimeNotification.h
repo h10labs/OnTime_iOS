@@ -11,9 +11,7 @@
 @interface OnTimeNotification : NSObject
 
 // default initializer
-- (id)initWithNotificationData:(NSArray *)estimatesForNotification
-                  withDuration:(NSNumber *)duration
-                    withBuffer:(NSNumber *)buffer;
+- (id)initWithNotificationData:(NSDictionary *)notificationData;
 
 - (void)scheduleNotification:(NSInteger)notificationIndex;
 

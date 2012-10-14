@@ -10,30 +10,42 @@
 
 static NSString * const notificationTitle = @"OnTime!";
 static NSString * const notificationMessage =
-    @"Leave at %@ to catch %@; it will take %d minute(s) to get there.";
+    @"Leave at %@ to catch %@ at %@; %@ there will take %d minute(s).";
 static NSString * const reminderMessage =
-    @"Leave now to catch %@; it will take %d minute(s) to get there.";
+    @"Leave now to catch %@ at %@; %@ there will take %d minute(s).";
 
 static NSString * const arrivalTimeKey = @"arrivalTimeInMinutes";
 static NSString * const destinationKey = @"destination";
+
+// date format is specified to be "12:14 AM"
+static NSString * const dateFormatTempalte = @"hh:mm a";
+
+// notification data dictionary keys
+static NSString * const bufferTimeKey = @"bufferTime";
+static NSString * const durationKey = @"duration";
+static NSString * const modeKey = @"mode";
+static NSString * const startKey = @"start";
+static NSString * const estimateKey = @"arrivalEstimates";
 
 @interface OnTimeNotification () {
     NSArray *notificationEstimates;
     NSNumber *durationTime;
     NSNumber *bufferTime;
+    NSString *mode;
+    NSString *startStation;
 }
 @end
 
 @implementation OnTimeNotification
 
-- (id)initWithNotificationData:(NSArray *)estimatesForNotification
-                  withDuration:(NSNumber *)duration
-                    withBuffer:(NSNumber *)buffer {
+- (id)initWithNotificationData:(NSDictionary *)notificationData {
     self = [super init];
     if (self) {
-        notificationEstimates = estimatesForNotification;
-        durationTime = duration;
-        bufferTime = buffer;
+        bufferTime = [notificationData objectForKey:bufferTimeKey];
+        durationTime = [notificationData objectForKey:durationKey];
+        mode = [notificationData objectForKey:modeKey];
+        startStation = [notificationData objectForKey:startKey];
+        notificationEstimates = [notificationData objectForKey:estimateKey];
     }
     return self;
 }
@@ -55,16 +67,30 @@ static NSString * const destinationKey = @"destination";
     [durationTime intValue] - [bufferTime intValue];
     NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:scheduledTimeInSeconds];
 
-
     // TODO: get the source station name as well as the mode to get to the station.
-    
+
     // create local notification to notify now
     UILocalNotification *notification = [[UILocalNotification alloc] init];
     NSDate *now = [NSDate date];
+
+    // setting up date formatter
+    NSLocale *locale = [NSLocale currentLocale];
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    NSString *dateFormat = [NSDateFormatter dateFormatFromTemplate:dateFormatTempalte
+                                                           options:0
+                                                            locale:locale];
+    [formatter setDateFormat:dateFormat];
+    [formatter setLocale:locale];
+    NSString *scheduledTimeString = [formatter stringFromDate:scheduledTime];
+
     [notification setFireDate:now];
     [notification setAlertAction:notificationTitle];
     [notification setAlertBody:[NSString stringWithFormat:notificationMessage,
-                                scheduledTime, destination, [durationTime intValue] / 60]];
+                                scheduledTimeString,
+                                destination,
+                                startStation,
+                                mode,
+                                [durationTime intValue] / 60]];
     [notification setHasAction:NO];
     [[UIApplication sharedApplication] scheduleLocalNotification:notification];
 
@@ -73,7 +99,10 @@ static NSString * const destinationKey = @"destination";
     [notification setFireDate:scheduledTime];
     [notification setAlertAction:notificationTitle];
     [notification setAlertBody:[NSString stringWithFormat:reminderMessage,
-                                destination, [durationTime intValue] / 60]];
+                                destination,
+                                startStation,
+                                mode,
+                                [durationTime intValue] / 60]];
     [notification setHasAction:NO];
     [[UIApplication sharedApplication] scheduleLocalNotification:notification];
 }
