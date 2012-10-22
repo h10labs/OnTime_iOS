@@ -17,7 +17,9 @@ static NSString * const OnTimeTitle = @"OnTime Bart";
 // Table view constants
 static NSString * const sourceHeader = @"From";
 static NSString * const destinationHeader = @"To";
-static NSString * const defaultCellText = @"Select station";
+
+static NSString * const defaultFromCellText = @"From: ";
+static NSString * const defaultToCellText = @"To: ";
 
 // Error titles and messages
 static NSString * const invalidTripTitle = @"Not a valid trip";
@@ -147,16 +149,6 @@ static NSString * const errorCodeKey = @"errorCode";
     return 2;
 }
 
-- (NSString *)tableView:(UITableView *)tv titleForHeaderInSection:(NSInteger)section {
-    NSString *headerTitle = nil;
-    if (section == 0){
-        headerTitle = sourceHeader;
-    } else if (section == 1){
-        headerTitle = destinationHeader;
-    }
-    return [headerTitle stringByAppendingString:@":"];
-}
-
 - (UITableViewCell *)tableView:(UITableView *)tv
          cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"UITableViewCell"];
@@ -166,12 +158,22 @@ static NSString * const errorCodeKey = @"errorCode";
         [cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
     }
 
-    NSString *cellText = defaultCellText;
+    NSString *cellText = nil;
+    switch ([indexPath section]) {
+    case 0:
+        cellText = defaultFromCellText;
+        break;
+    case 1:
+        cellText = defaultToCellText;
+        break;
+    default:
+        cellText = defaultFromCellText;
+    }
 
     // if station is selected show the station name as the cell text
     Station *station = [[BartStationStore sharedStore] getSelecedStation:[indexPath section]];
     if (station){
-        cellText = [station stationName];
+        cellText = [cellText stringByAppendingString:[station stationName]];
     }
     [[cell textLabel] setText:cellText];
     return cell;
@@ -201,6 +203,9 @@ static NSString * const errorCodeKey = @"errorCode";
                                          withTitle:titleString
                                          withCompletion:stationSelectionMade];
     [[self navigationController] pushViewController:scvc animated:YES];
+
+    // Deselect the row to avoid having the row highlighted
+    [tableView deselectRowAtIndexPath:indexPath animated:NO];
 }
 
 // action methods

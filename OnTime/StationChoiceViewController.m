@@ -16,7 +16,7 @@ static NSString * const backLabel = @"Back";
 - (id)initWithStations:(NSArray*)stations
              withTitle:(NSString *)title
         withCompletion:(void (^)(int))block{
-    self = [super initWithStyle:UITableViewStyleGrouped];
+    self = [super initWithStyle:UITableViewStylePlain];
     if (self){
         stationsArray = stations;
         selectionMade = block;
