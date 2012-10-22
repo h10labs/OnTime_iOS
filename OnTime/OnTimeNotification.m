@@ -79,12 +79,8 @@ NSString * const kSnoozableKey = @"isSnoozable";
         [[notificationData objectForKey:arrivalTimeKey] intValue] * 60;
     NSInteger scheduledTimeInSeconds = arrivalTimeInSeconds -
     [durationTime intValue] - [bufferTime intValue];
-    //NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:scheduledTimeInSeconds];
-    NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:15];
-
-    // create local notification to notify now
-    UILocalNotification *notification = [[UILocalNotification alloc] init];
-    NSDate *now = [NSDate date];
+    NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:scheduledTimeInSeconds];
+    //NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:15];
 
     // setting up date formatter
     NSLocale *locale = [NSLocale currentLocale];
@@ -96,16 +92,17 @@ NSString * const kSnoozableKey = @"isSnoozable";
     [formatter setLocale:locale];
     NSString *scheduledTimeString = [formatter stringFromDate:scheduledTime];
 
-    [notification setFireDate:now];
-    [notification setAlertAction:notificationTitle];
-    [notification setAlertBody:[NSString stringWithFormat:notificationMessage,
-                                scheduledTimeString,
-                                destination,
-                                [startStationInfo objectForKey:stationNameKey],
-                                mode,
-                                [durationTime intValue] / 60]];
-    [notification setHasAction:NO];
-    [[UIApplication sharedApplication] scheduleLocalNotification:notification];
+    UIAlertView *av = [[UIAlertView alloc] initWithTitle:notificationTitle
+                                                 message:[NSString stringWithFormat:notificationMessage,
+                                                          scheduledTimeString,
+                                                          destination,
+                                                          [startStationInfo objectForKey:stationNameKey],
+                                                          mode,
+                                                          [durationTime intValue] / 60]
+                                                delegate:nil
+                                       cancelButtonTitle:@"OK"
+                                       otherButtonTitles:nil];
+    [av show];
 
     // create local notification to notify at the appropriate time
 
@@ -113,7 +110,7 @@ NSString * const kSnoozableKey = @"isSnoozable";
     NSDictionary *userInfo = @{kStartId: startStationInfo[stationIdKey],
                                kDestinationId: destinationStationInfo[stationIdKey],
                                kSnoozableKey: @YES};
-    notification = [[UILocalNotification alloc] init];
+    UILocalNotification *notification = [[UILocalNotification alloc] init];
     [notification setFireDate:scheduledTime];
     [notification setAlertAction:snoozeLabel];
     [notification setAlertBody:[NSString stringWithFormat:reminderMessage,
