@@ -185,12 +185,15 @@ static NSString * const errorCodeKey = @"errorCode";
     
     NSArray *stations = nil;
     NSString *titleString = nil;
+    Station *selectedStation = nil;
     if (groupIndex == 0) {
         stations = [[BartStationStore sharedStore] nearbyStations:limitedStationNumber];
         titleString = sourceHeader;
+        selectedStation = [[BartStationStore sharedStore] getSelecedStation:0];
     } else {
         stations = [[BartStationStore sharedStore] nearbyStations];
         titleString = destinationHeader;
+        selectedStation = [[BartStationStore sharedStore] getSelecedStation:1];
     }
     
     // block code to execute when the selection is made
@@ -201,6 +204,7 @@ static NSString * const errorCodeKey = @"errorCode";
     StationChoiceViewController *scvc = [[StationChoiceViewController alloc]
                                          initWithStations:stations
                                          withTitle:titleString
+                                         withSelection:selectedStation
                                          withCompletion:stationSelectionMade];
     [[self navigationController] pushViewController:scvc animated:YES];
 
@@ -231,10 +235,10 @@ static NSString * const errorCodeKey = @"errorCode";
         return;
     } else if (sourceStation == destinationStation) {
         UIAlertView *av = [[UIAlertView alloc] initWithTitle:invalidTripTitle
-                                                    message:identicalStationMessage
-                                                   delegate:nil
-                                          cancelButtonTitle:errorButtonTitle
-                                          otherButtonTitles:nil];
+                                                     message:identicalStationMessage
+                                                    delegate:nil
+                                           cancelButtonTitle:errorButtonTitle
+                                           otherButtonTitles:nil];
         [av show];
         return;
     }

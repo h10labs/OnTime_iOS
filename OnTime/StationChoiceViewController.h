@@ -8,14 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
-@interface StationChoiceViewController : UITableViewController {
-    NSArray *stationsArray;
-    void (^selectionMade)(int stationIndex);
-}
+@class Station;
+
+@interface StationChoiceViewController : UITableViewController
 
 // designated initializer
 - (id)initWithStations:(NSArray *) stations
              withTitle:(NSString *) title
+         withSelection:(Station *)selectedStation
         withCompletion:(void (^)(int stationIndex))block;
 
 @end
