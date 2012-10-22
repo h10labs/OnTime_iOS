@@ -9,6 +9,7 @@
 #import "OnTimeNotification.h"
 
 static NSString * const notificationTitle = @"OnTime!";
+static NSString * const snoozeLabel = @"Snooze";
 static NSString * const notificationMessage =
     @"Leave at %@ to catch %@ at %@; %@ there will take %d minute(s).";
 static NSString * const reminderMessage =
@@ -24,15 +25,27 @@ static NSString * const dateFormatTempalte = @"hh:mm a";
 static NSString * const bufferTimeKey = @"bufferTime";
 static NSString * const durationKey = @"duration";
 static NSString * const modeKey = @"mode";
-static NSString * const startKey = @"start";
+static NSString * const startInfoKey = @"startInfo";
+static NSString * const destinationInfoKey = @"destinationInfo";
 static NSString * const estimateKey = @"arrivalEstimates";
+
+// notification data sub dictionary keys
+static NSString * const stationNameKey = @"name";
+static NSString * const stationIdKey = @"id";
+
+// user info dictionary key
+NSString * const kStartId = @"startId";
+NSString * const kDestinationId = @"destinationId";
+NSString * const kSnoozableKey = @"isSnoozable";
+
 
 @interface OnTimeNotification () {
     NSArray *notificationEstimates;
     NSNumber *durationTime;
     NSNumber *bufferTime;
     NSString *mode;
-    NSString *startStation;
+    NSDictionary *startStationInfo;
+    NSDictionary *destinationStationInfo;
 }
 @end
 
@@ -44,7 +57,8 @@ static NSString * const estimateKey = @"arrivalEstimates";
         bufferTime = [notificationData objectForKey:bufferTimeKey];
         durationTime = [notificationData objectForKey:durationKey];
         mode = [notificationData objectForKey:modeKey];
-        startStation = [notificationData objectForKey:startKey];
+        startStationInfo = [notificationData objectForKey:startInfoKey];
+        destinationStationInfo = [notificationData objectForKey:destinationInfoKey];
         notificationEstimates = [notificationData objectForKey:estimateKey];
     }
     return self;
@@ -65,7 +79,8 @@ static NSString * const estimateKey = @"arrivalEstimates";
         [[notificationData objectForKey:arrivalTimeKey] intValue] * 60;
     NSInteger scheduledTimeInSeconds = arrivalTimeInSeconds -
     [durationTime intValue] - [bufferTime intValue];
-    NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:scheduledTimeInSeconds];
+    //NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:scheduledTimeInSeconds];
+    NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:15];
 
     // create local notification to notify now
     UILocalNotification *notification = [[UILocalNotification alloc] init];
@@ -86,22 +101,28 @@ static NSString * const estimateKey = @"arrivalEstimates";
     [notification setAlertBody:[NSString stringWithFormat:notificationMessage,
                                 scheduledTimeString,
                                 destination,
-                                startStation,
+                                [startStationInfo objectForKey:stationNameKey],
                                 mode,
                                 [durationTime intValue] / 60]];
     [notification setHasAction:NO];
     [[UIApplication sharedApplication] scheduleLocalNotification:notification];
 
     // create local notification to notify at the appropriate time
+
+    // first create user info dictionary
+    NSDictionary *userInfo = @{kStartId: startStationInfo[stationIdKey],
+                               kDestinationId: destinationStationInfo[stationIdKey],
+                               kSnoozableKey: @YES};
     notification = [[UILocalNotification alloc] init];
     [notification setFireDate:scheduledTime];
-    [notification setAlertAction:notificationTitle];
+    [notification setAlertAction:snoozeLabel];
     [notification setAlertBody:[NSString stringWithFormat:reminderMessage,
                                 destination,
-                                startStation,
+                                [startStationInfo objectForKey:stationNameKey],
                                 mode,
                                 [durationTime intValue] / 60]];
-    [notification setHasAction:NO];
+    [notification setHasAction:YES];
+    [notification setUserInfo:userInfo];
     [[UIApplication sharedApplication] scheduleLocalNotification:notification];
 }
 @end

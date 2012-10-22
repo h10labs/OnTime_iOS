@@ -8,6 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
+extern NSString * const kStartId;
+extern NSString * const kDestinationId;
+extern NSString * const kSnoozableKey;
+
 @interface OnTimeNotification : NSObject
 
 // default initializer

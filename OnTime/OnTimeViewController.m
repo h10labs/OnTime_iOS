@@ -44,24 +44,45 @@ static NSString * const successKey = @"success";
 static NSString * const errorCodeKey = @"errorCode";
 
 
-@interface OnTimeViewController ()
+@interface OnTimeViewController () {
+    NSDictionary *notificationData_;
+}
+
+// handles the notification data retrieved from the server response
 - (void)handleNotificationData:(NSDictionary *)notificationData;
+
+// makes a notification request to the server with the given request data
+- (void)makeNotificationRequest:(NSDictionary *)requestData;
+
 @end
 
 @implementation OnTimeViewController
 
-
 // controller methods
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+
+// designated initializer
+- (id)initWithNibName:(NSString *)nibNameOrNil
+               bundle:(NSBundle *)nibBundleOrNil
+         notification:(NSDictionary *)notificationData {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         locationManager = [[CLLocationManager alloc] init];
         [locationManager setDesiredAccuracy:kCLLocationAccuracyNearestTenMeters];
 
+        // set the initial notification data
+        notificationData_ = notificationData;
+
         // set navigation bar title
         [[self navigationItem] setTitle:OnTimeTitle];
     }
     return self;
+}
+
+// overriding the parent class designated initializer
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    return [self initWithNibName:nibNameOrNil
+                          bundle:nibBundleOrNil
+                    notification:nil];
 }
 
 - (void)mapView:(MKMapView *)view didUpdateUserLocation:(MKUserLocation *)userLocation {
@@ -83,6 +104,9 @@ static NSString * const errorCodeKey = @"errorCode";
                                                            cancelButtonTitle:errorButtonTitle
                                                            otherButtonTitles:nil];
                 [errorAlert show];
+            } else if (notificationData_) {
+                [self processPendingNotification:notificationData_];
+                notificationData_ = nil;
             }
     };
     [[BartStationStore sharedStore] getNearbyStations:location
@@ -184,8 +208,8 @@ static NSString * const errorCodeKey = @"errorCode";
 - (IBAction)requestNotification:(id)sender {
     NSString *methodString = [methodToGetToStation
                               titleForSegmentAtIndex:[methodToGetToStation selectedSegmentIndex]];
-    NSMutableDictionary *requestData = [[NSMutableDictionary alloc] init];
-    [requestData setObject:methodString forKey:methodKey];
+    NSMutableDictionary *requestData = [NSMutableDictionary dictionary];
+    requestData[methodKey] = methodString;
     
     BartStation *sourceStation = (BartStation *)[[BartStationStore sharedStore]
                                                  getSelecedStation:0];
@@ -210,14 +234,21 @@ static NSString * const errorCodeKey = @"errorCode";
         return;
     }
     
-    [requestData setObject:[sourceStation stationId] forKey:sourceStationKey];
-    [requestData setObject:[destinationStation stationId] forKey:destinationStationKey];
+    requestData[sourceStationKey] = [sourceStation stationId];
+    requestData[destinationStationKey] = [destinationStation stationId];
     
     CLLocationCoordinate2D coords = [[locationManager location] coordinate];
     NSString *longitude = [NSString stringWithFormat:@"%f", coords.longitude];
     NSString *latitude = [NSString stringWithFormat:@"%f", coords.latitude];
-    [requestData setObject:longitude forKey:longitudeKey];
-    [requestData setObject:latitude forKey:latitudeKey];
+    requestData[longitudeKey] = longitude;
+    requestData[latitudeKey] = latitude;
+
+    [self makeNotificationRequest:requestData];
+}
+
+// private helper methods
+
+- (void)makeNotificationRequest:(NSDictionary *)requestData {
     void (^registerNotification)(NSDictionary *notificationData, NSError *err) =
     ^void(NSDictionary *notificationData, NSError *err) {
         if (err){
@@ -237,8 +268,6 @@ static NSString * const errorCodeKey = @"errorCode";
     [[BartStationStore sharedStore] requestNotification:requestData
                                          withCompletion:registerNotification];
 }
-
-// private helper methods
 
 - (void)handleNotificationData:(NSDictionary *)notificationData {
     NSLog(@"response data is %@", notificationData);
@@ -277,5 +306,33 @@ static NSString * const errorCodeKey = @"errorCode";
     // reset current selection since the notification was successful
     [[BartStationStore sharedStore] resetCurrentSelectedStations];
     [tableView reloadData];
+}
+
+- (void)processPendingNotification:(NSDictionary *)notificationData {
+    if (notificationData) {
+        NSLog(@"processing pending notification");
+        NSMutableDictionary *requestData = [NSMutableDictionary dictionary];
+
+        NSString *startStationId = nil;
+        NSArray *nearbyStations = [[BartStationStore sharedStore] nearbyStations:1];
+        if ([nearbyStations count] > 0) {
+            BartStation *nearbyStation = nearbyStations[0];
+            startStationId = nearbyStation.stationId;
+        } else {
+            startStationId = notificationData[kStartId];
+        }
+
+        requestData[sourceStationKey] = startStationId;
+        requestData[destinationStationKey] = notificationData[kDestinationId];
+
+        // TODO: Duplicated code.
+        CLLocationCoordinate2D coords = [[locationManager location] coordinate];
+        NSString *longitude = [NSString stringWithFormat:@"%f", coords.longitude];
+        NSString *latitude = [NSString stringWithFormat:@"%f", coords.latitude];
+        requestData[longitudeKey] = longitude;
+        requestData[latitudeKey] = latitude;
+
+        [self makeNotificationRequest:requestData];
+    }
 }
 @end

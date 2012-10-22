@@ -8,16 +8,39 @@
 
 #import "OnTimeAppDelegate.h"
 #import "OnTimeViewController.h"
+#import "OnTimeNotification.h"
+
+static NSString * const kSnoozeTitle = @"Snooze";
+
+@interface OnTimeAppDelegate () {
+    OnTimeViewController *onTimeViewController_;
+
+    // TODO: is this safe to keep only one instance of object?
+    NSDictionary *receivedNotificationData_;
+}
+
+@end
 
 @implementation OnTimeAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    // Override point for customization after application launch.
-    //self.viewController = [[OnTimeViewController alloc] initWithNibName:@"OnTimeViewController" bundle:nil];
-    OnTimeViewController *viewController = [[OnTimeViewController alloc] initWithNibName:@"OnTimeViewController" bundle:nil];
-    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:viewController];
+
+    // check if there is a location notification that is pending to be processed
+    NSDictionary *notificationData = nil;
+    UILocalNotification *notification = [launchOptions objectForKey:UIApplicationLaunchOptionsLocalNotificationKey];
+    if (notification) {
+        // sets in the view controller
+        notificationData = notification.userInfo;
+    }
+
+    onTimeViewController_ = [[OnTimeViewController alloc] initWithNibName:@"OnTimeViewController"
+                                                                   bundle:nil
+                                                             notification:notificationData];
+
+    UINavigationController *navController =
+        [[UINavigationController alloc] initWithRootViewController:onTimeViewController_];
     
     self.window.rootViewController = navController;
     [self.window makeKeyAndVisible];
@@ -26,11 +49,17 @@
 
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
     NSLog(@"Received local notification: %@", notification);
+
     UIAlertView *av = [[UIAlertView alloc] initWithTitle:[notification alertAction]
                                                  message:[notification alertBody]
-                                                delegate:nil
+                                                delegate:self
                                        cancelButtonTitle:@"OK"
                                        otherButtonTitles:nil];
+    if ([notification.userInfo[kSnoozableKey] boolValue]) {
+        // store the user info of the given notification
+        receivedNotificationData_ = notification.userInfo;
+        [av addButtonWithTitle:kSnoozeTitle];
+    }
     [av show];
 }
 
@@ -59,6 +88,16 @@
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+}
+
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    NSString *buttonTitle = [alertView buttonTitleAtIndex:buttonIndex];
+    if ([buttonTitle compare:kSnoozeTitle] == NSOrderedSame) {
+        // reset the notification info
+        [onTimeViewController_ processPendingNotification:receivedNotificationData_];
+        receivedNotificationData_ = nil;
+    }
 }
 
 @end

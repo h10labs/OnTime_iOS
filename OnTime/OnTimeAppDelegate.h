@@ -10,7 +10,7 @@
 
 @class OnTimeViewController;
 
-@interface OnTimeAppDelegate : UIResponder <UIApplicationDelegate>
+@interface OnTimeAppDelegate : UIResponder <UIApplicationDelegate, UIAlertViewDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 
