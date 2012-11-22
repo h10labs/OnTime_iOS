@@ -26,7 +26,7 @@
 // retrieve specified number of nearby stations.
 // note that if numStations is greater than the number of possible nearby
 // stations, it will return as many nearby station there are.
--  (NSArray *) nearbyStations:(NSInteger)numStations;
+- (NSArray *)nearbyStations:(NSInteger)numStations;
 
 // submit the notification request to the server.
 // provide the completion block to perform action after the notification is

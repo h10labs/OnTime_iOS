@@ -107,24 +107,9 @@
 		6A3CC476160EEE7700F4A12A /* OnTime */ = {
 			isa = PBXGroup;
 			children = (
-				6A9E6D271616D4C200CFF4DD /* OnTimeManagerProtocol.h */,
-				6AA5B21916293E79001FA806 /* OnTimeNotification.h */,
-				6AA5B21A16293E79001FA806 /* OnTimeNotification.m */,
-				6A9E6D281616D57200CFF4DD /* BartStationStore.h */,
-				6A9E6D291616D57200CFF4DD /* BartStationStore.m */,
-				6A9E6D231616D0C300CFF4DD /* OnTimeConnection.h */,
-				6A9E6D241616D0C300CFF4DD /* OnTimeConnection.m */,
-				6A3CC47F160EEE7700F4A12A /* OnTimeAppDelegate.h */,
-				6A3CC480160EEE7800F4A12A /* OnTimeAppDelegate.m */,
-				6A3CC482160EEE7800F4A12A /* OnTimeViewController.h */,
-				6A3CC483160EEE7800F4A12A /* OnTimeViewController.m */,
-				6A3CC485160EEE7800F4A12A /* OnTimeViewController.xib */,
-				6A9E6CD21614298200CFF4DD /* StationChoiceViewController.h */,
-				6A9E6CD31614298200CFF4DD /* StationChoiceViewController.m */,
-				6A9E6D191616CECC00CFF4DD /* Station.h */,
-				6A9E6D1A1616CECC00CFF4DD /* Station.m */,
-				6A9E6D1C1616CF6D00CFF4DD /* BartStation.h */,
-				6A9E6D1D1616CF6D00CFF4DD /* BartStation.m */,
+				6A6F0A00165EE5AC00423239 /* Models */,
+				6A6F0A02165EE5E600423239 /* Controllers */,
+				6A6F0A03165EE61E00423239 /* Stores */,
 				6A3CC477160EEE7700F4A12A /* Supporting Files */,
 			);
 			path = OnTime;
@@ -133,12 +118,51 @@
 		6A3CC477160EEE7700F4A12A /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				6A9E6D231616D0C300CFF4DD /* OnTimeConnection.h */,
+				6A9E6D241616D0C300CFF4DD /* OnTimeConnection.m */,
 				6A3CC478160EEE7700F4A12A /* OnTime-Info.plist */,
 				6A3CC479160EEE7700F4A12A /* InfoPlist.strings */,
 				6A3CC47C160EEE7700F4A12A /* main.m */,
 				6A3CC47E160EEE7700F4A12A /* OnTime-Prefix.pch */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		6A6F0A00165EE5AC00423239 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				6A9E6D191616CECC00CFF4DD /* Station.h */,
+				6A9E6D1A1616CECC00CFF4DD /* Station.m */,
+				6A9E6D1C1616CF6D00CFF4DD /* BartStation.h */,
+				6A9E6D1D1616CF6D00CFF4DD /* BartStation.m */,
+				6AA5B21916293E79001FA806 /* OnTimeNotification.h */,
+				6AA5B21A16293E79001FA806 /* OnTimeNotification.m */,
+			);
+			name = Models;
+			sourceTree = "<group>";
+		};
+		6A6F0A02165EE5E600423239 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				6A3CC47F160EEE7700F4A12A /* OnTimeAppDelegate.h */,
+				6A3CC480160EEE7800F4A12A /* OnTimeAppDelegate.m */,
+				6A9E6CD21614298200CFF4DD /* StationChoiceViewController.h */,
+				6A9E6CD31614298200CFF4DD /* StationChoiceViewController.m */,
+				6A3CC482160EEE7800F4A12A /* OnTimeViewController.h */,
+				6A3CC483160EEE7800F4A12A /* OnTimeViewController.m */,
+				6A3CC485160EEE7800F4A12A /* OnTimeViewController.xib */,
+			);
+			name = Controllers;
+			sourceTree = "<group>";
+		};
+		6A6F0A03165EE61E00423239 /* Stores */ = {
+			isa = PBXGroup;
+			children = (
+				6A9E6D271616D4C200CFF4DD /* OnTimeManagerProtocol.h */,
+				6A9E6D281616D57200CFF4DD /* BartStationStore.h */,
+				6A9E6D291616D57200CFF4DD /* BartStationStore.m */,
+			);
+			name = Stores;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
