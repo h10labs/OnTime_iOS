@@ -48,6 +48,8 @@ static NSString * const errorCodeKey = @"errorCode";
 
 @interface OnTimeViewController () {
     NSDictionary *notificationData_;
+    CLLocationManager *locationManager_;
+    NSMutableSet *tableRowsToUpdate_;
 }
 
 // handles the notification data retrieved from the server response
@@ -70,19 +72,23 @@ static NSString * const errorCodeKey = @"errorCode";
          notification:(NSDictionary *)notificationData {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        locationManager = [[CLLocationManager alloc] init];
-        [locationManager setDesiredAccuracy:kCLLocationAccuracyHundredMeters];
+        locationManager_ = [[CLLocationManager alloc] init];
+        [locationManager_ setDesiredAccuracy:kCLLocationAccuracyHundredMeters];
         
-        // set the initial notification data
+        // Set the initial notification data.
         notificationData_ = notificationData;
 
-        // set navigation bar title
+        // Initialize the set of rows to update when the view appears.
+        // This is used for cases like when users has made a source station.
+        tableRowsToUpdate_ = [NSMutableSet set];
+
+        // Set navigation bar title.
         self.navigationItem.title = OnTimeTitle;
     }
     return self;
 }
 
-// overriding the parent class designated initializer
+// Overriding the parent class designated initializer
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     return [self initWithNibName:nibNameOrNil
                           bundle:nibBundleOrNil
@@ -92,23 +98,38 @@ static NSString * const errorCodeKey = @"errorCode";
 
 #pragma mark - view cycle methods
 
+- (void)viewDidLoad {
+   [userMapView setShowsUserLocation:YES];
+}
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [activityIndicator startAnimating];
-    [userMapView setShowsUserLocation:YES];
-}
 
-- (void)viewDidDisappear:(BOOL)animated {
-    [activityIndicator stopAnimating];
-    [userMapView setShowsUserLocation:NO];
+    // Update the rows that needs to be updated.
+    if ([tableRowsToUpdate_ count] > 0) {
+        [tableView reloadRowsAtIndexPaths:[tableRowsToUpdate_ allObjects]
+                         withRowAnimation:UITableViewRowAnimationRight];
+        [tableRowsToUpdate_ removeAllObjects];
+    }
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
     return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
 }
 
+
+#pragma mark - map view delegate methods
+
+
 - (void)mapView:(MKMapView *)view didUpdateUserLocation:(MKUserLocation *)userLocation {
+    static BOOL updateInProgress = NO;
+    if (updateInProgress) {
+        [activityIndicator stopAnimating];
+        return;
+    }
+    updateInProgress = YES;
+    [activityIndicator startAnimating];
+
     CLLocation *location = [userLocation location];
     CLLocationCoordinate2D coords = [location coordinate];
     MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(coords, 500, 500);
@@ -131,6 +152,7 @@ static NSString * const errorCodeKey = @"errorCode";
             [self processPendingNotification:notificationData_];
             notificationData_ = nil;
         }
+        updateInProgress = NO;
     };
     [[BartStationStore sharedStore] getNearbyStations:location
                                        withCompletion:displayNearbyStations];
@@ -161,7 +183,7 @@ static NSString * const errorCodeKey = @"errorCode";
     }
 
     NSString *cellText = nil;
-    switch ([indexPath section]) {
+    switch (indexPath.section) {
     case 0:
         cellText = defaultFromCellText;
         break;
@@ -173,9 +195,9 @@ static NSString * const errorCodeKey = @"errorCode";
     }
 
     // if station is selected show the station name as the cell text
-    Station *station = [[BartStationStore sharedStore] getSelecedStation:[indexPath section]];
+    Station *station = [[BartStationStore sharedStore] getSelecedStation:indexPath.section];
     if (station){
-        cellText = [cellText stringByAppendingString:[station stationName]];
+        cellText = [cellText stringByAppendingString:station.stationName];
     }
     cell.textLabel.text = cellText;
     return cell;
@@ -204,7 +226,10 @@ static NSString * const errorCodeKey = @"errorCode";
     // block code to execute when the selection is made
     void (^stationSelectionMade)() = ^void(NSInteger stationIndex) {
         [[BartStationStore sharedStore] selectStation:stationIndex inGroup:groupIndex];
-        [tableView reloadData];
+
+        // Record that the table row designated by the given index path needs to
+        // be updated.
+        [tableRowsToUpdate_ addObject:indexPath];
     };
     StationChoiceViewController *scvc = [[StationChoiceViewController alloc]
                                          initWithStations:stations
@@ -253,7 +278,7 @@ static NSString * const errorCodeKey = @"errorCode";
     requestData[sourceStationKey] = sourceStation.stationId;
     requestData[destinationStationKey] = destinationStation.stationId;
     
-    CLLocationCoordinate2D coords = [[locationManager location] coordinate];
+    CLLocationCoordinate2D coords = [[locationManager_ location] coordinate];
     NSString *longitude = [NSString stringWithFormat:@"%f", coords.longitude];
     NSString *latitude = [NSString stringWithFormat:@"%f", coords.latitude];
     requestData[longitudeKey] = longitude;
@@ -345,7 +370,7 @@ static NSString * const errorCodeKey = @"errorCode";
         requestData[destinationStationKey] = notificationData[kDestinationId];
 
         // TODO: Duplicated code.
-        CLLocationCoordinate2D coords = [[locationManager location] coordinate];
+        CLLocationCoordinate2D coords = [[locationManager_ location] coordinate];
         NSString *longitude = [NSString stringWithFormat:@"%f", coords.longitude];
         NSString *latitude = [NSString stringWithFormat:@"%f", coords.latitude];
         requestData[longitudeKey] = longitude;
