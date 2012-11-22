@@ -9,8 +9,7 @@
 #import <UIKit/UIKit.h>
 #import <MapKit/MapKit.h>
 
-@interface OnTimeViewController : UIViewController <MKMapViewDelegate, UITableViewDataSource,
-                                                    UITableViewDelegate> {
+@interface OnTimeViewController : UIViewController <MKMapViewDelegate, UITableViewDataSource, UITableViewDelegate> {
     CLLocationManager *locationManager;
     
     __weak IBOutlet MKMapView *userMapView;

@@ -41,7 +41,7 @@ static NSMutableArray *sharedConnectionList = nil;
                                                          delegate:self
                                                  startImmediately:YES];
     if (!sharedConnectionList){
-        sharedConnectionList = [[NSMutableArray alloc] init];
+        sharedConnectionList = [NSMutableArray array];
     }
     [sharedConnectionList addObject:self];
 }
@@ -55,16 +55,17 @@ static NSMutableArray *sharedConnectionList = nil;
     NSDictionary *jsonData = [NSJSONSerialization JSONObjectWithData:container
                                                              options:0
                                                                error:nil];
-    if ([self completionBlock]){
-        [self completionBlock](jsonData, nil);
+    if (self.completionBlock){
+        self.completionBlock(jsonData, nil);
     }
     [sharedConnectionList removeObject:self];
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-    if ([self completionBlock]){
-        [self completionBlock](nil, error);
+    if (self.completionBlock){
+        self.completionBlock(nil, error);
     }
     [sharedConnectionList removeObject:self];
 }
+
 @end

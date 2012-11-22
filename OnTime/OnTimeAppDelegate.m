@@ -94,8 +94,10 @@ static NSString * const kSnoozeTitle = @"Snooze";
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     NSString *buttonTitle = [alertView buttonTitleAtIndex:buttonIndex];
     if ([buttonTitle compare:kSnoozeTitle] == NSOrderedSame) {
-        // reset the notification info
+        // Let the view controller handle the notification.
         [onTimeViewController_ processPendingNotification:receivedNotificationData_];
+        
+        // reset the notification info
         receivedNotificationData_ = nil;
     }
 }

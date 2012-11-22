@@ -12,9 +12,8 @@
 
 const NSInteger limitedStationNumber = 3;
 
-//NSString * const bartStationUrlTemplate = @"http://ontime.nodejitsu.com/bart/locate/?lat=%f&long=%f";
-NSString * const bartStationUrlTemplate = @"http://localhost:8000/bart/locate/?lat=%f&long=%f";
-NSString * const bartNotificationUrl = @"http://localhost:8000/bart/notify";
+NSString * const bartStationUrlTemplate = @"http://ontime.nodejitsu.com/bart/locate/?lat=%f&long=%f";
+NSString * const bartNotificationUrl = @"http://ontime.nodejitsu.com/bart/notify";
 
 // keys for stations json objects
 NSString * const successKey = @"success";
@@ -38,10 +37,10 @@ NSString * const longitudeKey = @"long";
     if (!stationStore){
         // set up the singleton instance
         stationStore = [[BartStationStore alloc] init];
-        [stationStore setNearbyStations:[[NSMutableArray alloc] init]];
-        [stationStore setSelectedStationIndices:[NSMutableArray
-                                                 arrayWithObjects:[NSNumber numberWithInt:-1],
-                                                 [NSNumber numberWithInt:-1], nil]];
+        stationStore.nearbyStations = [NSMutableArray array];
+        stationStore.selectedStationIndices = [NSMutableArray
+                                               arrayWithObjects:[NSNumber numberWithInt:-1],
+                                               [NSNumber numberWithInt:-1], nil];
     }
     return stationStore;
 }
@@ -51,7 +50,7 @@ NSString * const longitudeKey = @"long";
 
     // set up the HTTP GET request to retrieve nearby stations of the given
     // location.
-    CLLocationCoordinate2D coords = [currentLocation coordinate];
+    CLLocationCoordinate2D coords = currentLocation.coordinate;
     NSString *urlString = [NSString stringWithFormat:bartStationUrlTemplate,
                            coords.latitude, coords.longitude];
     NSURL *url = [NSURL URLWithString:urlString];
@@ -64,16 +63,19 @@ NSString * const longitudeKey = @"long";
     // task.
     void (^processNearbyStations)(NSDictionary *stationsData, NSError *err) =
     ^void(NSDictionary *stationData, NSError *err){
-        NSValue *isSuccessful = [stationData objectForKey:successKey];
+        // First clear out the nearby stations.
+        [self.nearbyStations removeAllObjects];
+
+        NSValue *isSuccessful = stationData[successKey];
         if (!err){
             if (isSuccessful){
                 // process stations                
-                for (NSDictionary *stationDict in [stationData objectForKey:stationDictKey]){
+                for (NSDictionary *stationDict in stationData[stationDictKey]) {
                     BartStation *station = [[BartStation alloc] init];
                     [station setStationId:[stationDict objectForKey:stationIdKey]];
                     [station setStationName:[stationDict objectForKey:stationNameKey]];
                     [station setStreetAddress:[stationDict objectForKey:stationAddressKey]];
-                    [[self nearbyStations] addObject:station];
+                    [self.nearbyStations addObject:station];
                 }
             } else {
                 NSLog(@"success returned false");
@@ -83,7 +85,7 @@ NSString * const longitudeKey = @"long";
             NSLog(@"error was returned for getNearbyStations");
         }
         if (block){
-            block([self nearbyStations], err);
+            block(self.nearbyStations, err);
         }
     };
     [connection setCompletionBlock:processNearbyStations];
@@ -92,26 +94,25 @@ NSString * const longitudeKey = @"long";
 }
 
 - (NSArray *)nearbyStations:(NSInteger)numStations {
-    NSArray *stations = [self nearbyStations];
+    NSArray *stations = self.nearbyStations;
     // making sure that numStations never exceeds the available station number
     numStations = numStations > [stations count] ? [stations count] : numStations;
 
     NSRange range;
     range.location = 0;
     range.length = numStations;
-    NSArray *limitedStations = [stations subarrayWithRange:range];
-    return limitedStations;
+    return [stations subarrayWithRange:range];
 }
 
 - (void)selectStation:(NSInteger)stationIndex inGroup:(NSInteger)groupIndex {
-    if (groupIndex < [[self selectedStationIndices] count]){
+    if (groupIndex < [self.selectedStationIndices count]){
         // make sure the group index is within the expected range
-        if (stationIndex < [[self nearbyStations] count]){
+        if (stationIndex < [self.nearbyStations count]){
             // also check that the station index is within the number of
             // available nearby stations.
             NSNumber *selectedStationIndex = [NSNumber numberWithInt:stationIndex];
-            [[self selectedStationIndices] replaceObjectAtIndex:groupIndex
-                                                     withObject:selectedStationIndex];
+            [self.selectedStationIndices replaceObjectAtIndex:groupIndex
+                                                   withObject:selectedStationIndex];
         } else {
             NSLog(@"station index is higher than nearby station count");
         }
@@ -121,22 +122,20 @@ NSString * const longitudeKey = @"long";
 }
 
 -(Station *)getSelecedStation:(NSInteger)groupIndex {
-    NSNumber *selectedStationIndex =  [[self selectedStationIndices] objectAtIndex:groupIndex];
+    NSNumber *selectedStationIndex = self.selectedStationIndices[groupIndex];
     NSInteger index = [selectedStationIndex integerValue];
     if (index < 0){
         // if no selection was made for the given group, simply return nil
         return nil;
     }
-    BartStation * station = [[self nearbyStations]
-                             objectAtIndex:[selectedStationIndex integerValue]];
-    return station;
+    return self.nearbyStations[[selectedStationIndex integerValue]];
 }
 
 - (void)resetCurrentSelectedStations {
-    for (NSInteger i = 0; i < [[self selectedStationIndices] count]; ++i){
+    for (NSInteger i = 0; i < [self.selectedStationIndices count]; ++i){
         NSNumber *unselectedStationIndex = [NSNumber numberWithInt:-1];
-        [[self selectedStationIndices] replaceObjectAtIndex:i
-                                                 withObject:unselectedStationIndex];
+        [self.selectedStationIndices replaceObjectAtIndex:i
+                                               withObject:unselectedStationIndex];
     }
 }
 

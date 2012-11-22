@@ -31,8 +31,8 @@ static NSString * const backLabel = @"Back";
         selectionMade_ = block;
         selectedStation_ = selectedStation;
         // set up the navigation bar content
-        [[self navigationItem] setTitle:title];
-        [[[self navigationItem] rightBarButtonItem] setTitle:backLabel];
+        self.navigationItem.title = title;
+        self.navigationItem.rightBarButtonItem.title = backLabel;
     }
     return self;
 }
@@ -57,11 +57,11 @@ static NSString * const backLabel = @"Back";
                                       reuseIdentifier:@"UITableViewCell"];
     }
     
-    Station *station = [stationsArray_ objectAtIndex:[indexPath row]];
-    NSString *cellText = [station stationName];
-    NSString *cellDetailText = [station streetAddress];
-    [[cell textLabel] setText:cellText];
-    [[cell detailTextLabel] setText:cellDetailText];
+    Station *station = stationsArray_[indexPath.row];
+    NSString *cellText = station.stationName;
+    NSString *cellDetailText = station.streetAddress;
+    cell.textLabel.text = cellText;
+    cell.detailTextLabel.text = cellDetailText;
 
     if (station == selectedStation_) {
         [cell setAccessoryType:UITableViewCellAccessoryCheckmark];
@@ -72,10 +72,10 @@ static NSString * const backLabel = @"Back";
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSLog(@"selected row is %d", [indexPath row]);
+    NSLog(@"selected row is %d", indexPath.row);
     if (selectionMade_){
-        selectionMade_([indexPath row]);
+        selectionMade_(indexPath.row);
     }
-    [[self navigationController] popViewControllerAnimated:YES];
+    [self.navigationController popViewControllerAnimated:YES];
 }
 @end

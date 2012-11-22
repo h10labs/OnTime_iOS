@@ -60,7 +60,9 @@ static NSString * const errorCodeKey = @"errorCode";
 
 @implementation OnTimeViewController
 
-// controller methods
+
+# pragma mark - inits
+
 
 // designated initializer
 - (id)initWithNibName:(NSString *)nibNameOrNil
@@ -69,13 +71,13 @@ static NSString * const errorCodeKey = @"errorCode";
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         locationManager = [[CLLocationManager alloc] init];
-        [locationManager setDesiredAccuracy:kCLLocationAccuracyNearestTenMeters];
-
+        [locationManager setDesiredAccuracy:kCLLocationAccuracyHundredMeters];
+        
         // set the initial notification data
         notificationData_ = notificationData;
 
         // set navigation bar title
-        [[self navigationItem] setTitle:OnTimeTitle];
+        self.navigationItem.title = OnTimeTitle;
     }
     return self;
 }
@@ -87,55 +89,55 @@ static NSString * const errorCodeKey = @"errorCode";
                     notification:nil];
 }
 
+
+#pragma mark - view cycle methods
+
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    [activityIndicator startAnimating];
+    [userMapView setShowsUserLocation:YES];
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [activityIndicator stopAnimating];
+    [userMapView setShowsUserLocation:NO];
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
+}
+
 - (void)mapView:(MKMapView *)view didUpdateUserLocation:(MKUserLocation *)userLocation {
     CLLocation *location = [userLocation location];
     CLLocationCoordinate2D coords = [location coordinate];
     MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(coords, 500, 500);
     [userMapView setRegion:region animated:YES];
-      
+
     // callback method
     void (^displayNearbyStations)(NSArray *nearbyStations, NSError *err) =
-        ^void(NSArray *nearbyStations, NSError *err){
-            [activityIndicator stopAnimating];
-            if (err) {
-                // display the error message if retrieve nearby stations was
-                // not successful
-                UIAlertView *errorAlert = [[UIAlertView alloc] initWithTitle:nearbyStationErrorTitle
-                                                                     message:errorMessage
-                                                                    delegate:nil
-                                                           cancelButtonTitle:errorButtonTitle
-                                                           otherButtonTitles:nil];
-                [errorAlert show];
-            } else if (notificationData_) {
-                [self processPendingNotification:notificationData_];
-                notificationData_ = nil;
-            }
+    ^void(NSArray *nearbyStations, NSError *err){
+        [activityIndicator stopAnimating];
+        if (err) {
+            // display the error message if retrieve nearby stations was
+            // not successful
+            UIAlertView *errorAlert = [[UIAlertView alloc] initWithTitle:nearbyStationErrorTitle
+                                                                 message:errorMessage
+                                                                delegate:nil
+                                                       cancelButtonTitle:errorButtonTitle
+                                                       otherButtonTitles:nil];
+            [errorAlert show];
+        } else if (notificationData_) {
+            [self processPendingNotification:notificationData_];
+            notificationData_ = nil;
+        }
     };
     [[BartStationStore sharedStore] getNearbyStations:location
                                        withCompletion:displayNearbyStations];
 }
 
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
-    [activityIndicator startAnimating];
-    [userMapView setShowsUserLocation:YES];
-    
-    [tableView setDelegate:self];
-    [tableView setDataSource:self];
-}
 
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
-}
+#pragma mark - table view data source overrides
 
 
 // table view data source overrides
@@ -175,13 +177,16 @@ static NSString * const errorCodeKey = @"errorCode";
     if (station){
         cellText = [cellText stringByAppendingString:[station stationName]];
     }
-    [[cell textLabel] setText:cellText];
+    cell.textLabel.text = cellText;
     return cell;
 }
 
-// table view delegate overrides
+
+#pragma mark - table view delegate overrides
+
+
 - (void)tableView:(UITableView *)tv didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSInteger groupIndex = [indexPath section];
+    NSInteger groupIndex = indexPath.section;
     
     NSArray *stations = nil;
     NSString *titleString = nil;
@@ -206,13 +211,15 @@ static NSString * const errorCodeKey = @"errorCode";
                                          withTitle:titleString
                                          withSelection:selectedStation
                                          withCompletion:stationSelectionMade];
-    [[self navigationController] pushViewController:scvc animated:YES];
+    [self.navigationController pushViewController:scvc animated:YES];
 
     // Deselect the row to avoid having the row highlighted
     [tableView deselectRowAtIndexPath:indexPath animated:NO];
 }
 
-// action methods
+
+#pragma mark - action methods
+
 
 - (IBAction)requestNotification:(id)sender {
     NSString *methodString = [methodToGetToStation
@@ -243,8 +250,8 @@ static NSString * const errorCodeKey = @"errorCode";
         return;
     }
     
-    requestData[sourceStationKey] = [sourceStation stationId];
-    requestData[destinationStationKey] = [destinationStation stationId];
+    requestData[sourceStationKey] = sourceStation.stationId;
+    requestData[destinationStationKey] = destinationStation.stationId;
     
     CLLocationCoordinate2D coords = [[locationManager location] coordinate];
     NSString *longitude = [NSString stringWithFormat:@"%f", coords.longitude];
@@ -255,7 +262,9 @@ static NSString * const errorCodeKey = @"errorCode";
     [self makeNotificationRequest:requestData];
 }
 
-// private helper methods
+
+#pragma mark - private helper methods
+
 
 - (void)makeNotificationRequest:(NSDictionary *)requestData {
     void (^registerNotification)(NSDictionary *notificationData, NSError *err) =
@@ -281,9 +290,9 @@ static NSString * const errorCodeKey = @"errorCode";
 - (void)handleNotificationData:(NSDictionary *)notificationData {
     NSLog(@"response data is %@", notificationData);
 
-    id successValue = [notificationData objectForKey:successKey];
+    id successValue = notificationData[successKey];
     if (![successValue boolValue]){
-        int errorCode = [[notificationData objectForKey:errorCodeKey] intValue];
+        int errorCode = [notificationData[errorCodeKey] intValue];
         NSString *noNotificationErrorMessage = nil;
         switch (errorCode){
             case 1:
@@ -308,6 +317,7 @@ static NSString * const errorCodeKey = @"errorCode";
         return;
     }
 
+    // Schedule the first available notification
     OnTimeNotification *notification =
         [[OnTimeNotification alloc] initWithNotificationData:notificationData];
     [notification scheduleNotification:0];
@@ -344,4 +354,5 @@ static NSString * const errorCodeKey = @"errorCode";
         [self makeNotificationRequest:requestData];
     }
 }
+
 @end

@@ -54,12 +54,12 @@ NSString * const kSnoozableKey = @"isSnoozable";
 - (id)initWithNotificationData:(NSDictionary *)notificationData {
     self = [super init];
     if (self) {
-        bufferTime = [notificationData objectForKey:bufferTimeKey];
-        durationTime = [notificationData objectForKey:durationKey];
-        mode = [notificationData objectForKey:modeKey];
-        startStationInfo = [notificationData objectForKey:startInfoKey];
-        destinationStationInfo = [notificationData objectForKey:destinationInfoKey];
-        notificationEstimates = [notificationData objectForKey:estimateKey];
+        bufferTime = notificationData[bufferTimeKey];
+        durationTime = notificationData[durationKey];
+        mode = notificationData[modeKey];
+        startStationInfo = notificationData[startInfoKey];
+        destinationStationInfo = notificationData[destinationInfoKey];
+        notificationEstimates = notificationData[estimateKey];
     }
     return self;
 }
@@ -71,16 +71,15 @@ NSString * const kSnoozableKey = @"isSnoozable";
 }
 
 - (void)scheduleNotification:(NSInteger)notificationIndex {
-    NSDictionary *notificationData =
-        [notificationEstimates objectAtIndex:notificationIndex];
+    // Retrieve the specified notification data.
+    NSDictionary *notificationData = notificationEstimates[notificationIndex];
 
-    NSString *destination = [notificationData objectForKey:destinationKey];
+    NSString *destination = notificationData[destinationKey];
     NSInteger arrivalTimeInSeconds =
         [[notificationData objectForKey:arrivalTimeKey] intValue] * 60;
-    NSInteger scheduledTimeInSeconds = arrivalTimeInSeconds -
-    [durationTime intValue] - [bufferTime intValue];
+    NSInteger scheduledTimeInSeconds = arrivalTimeInSeconds - [durationTime intValue] -
+        [bufferTime intValue];
     NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:scheduledTimeInSeconds];
-    //NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:15];
 
     // setting up date formatter
     NSLocale *locale = [NSLocale currentLocale];
@@ -96,7 +95,7 @@ NSString * const kSnoozableKey = @"isSnoozable";
                                                  message:[NSString stringWithFormat:notificationMessage,
                                                           scheduledTimeString,
                                                           destination,
-                                                          [startStationInfo objectForKey:stationNameKey],
+                                                          startStationInfo[stationNameKey],
                                                           mode,
                                                           [durationTime intValue] / 60]
                                                 delegate:nil
@@ -115,7 +114,7 @@ NSString * const kSnoozableKey = @"isSnoozable";
     [notification setAlertAction:snoozeLabel];
     [notification setAlertBody:[NSString stringWithFormat:reminderMessage,
                                 destination,
-                                [startStationInfo objectForKey:stationNameKey],
+                                startStationInfo[stationNameKey],
                                 mode,
                                 [durationTime intValue] / 60]];
     [notification setHasAction:YES];
