@@ -21,6 +21,7 @@ NSString * const stationDictKey = @"stations";
 NSString * const stationIdKey = @"id";
 NSString * const stationNameKey = @"name";
 NSString * const stationAddressKey = @"address";
+NSString * const stationLocationKey = @"location";
 
 // keys for notification request
 NSString * const methodKey = @"method";
@@ -72,9 +73,15 @@ NSString * const longitudeKey = @"long";
                 // process stations                
                 for (NSDictionary *stationDict in stationData[stationDictKey]) {
                     BartStation *station = [[BartStation alloc] init];
-                    [station setStationId:[stationDict objectForKey:stationIdKey]];
-                    [station setStationName:[stationDict objectForKey:stationNameKey]];
-                    [station setStreetAddress:[stationDict objectForKey:stationAddressKey]];
+                    station.stationId = stationDict[stationIdKey];
+                    station.stationName = stationDict[stationNameKey];
+                    station.streetAddress = stationDict[stationAddressKey];
+                    NSArray *locationCoords = stationDict[stationLocationKey];
+                    if (locationCoords && [locationCoords count] == 2) {
+                         station.location = CLLocationCoordinate2DMake([locationCoords[1] floatValue],
+                                                                       [locationCoords[0] floatValue]);
+                    }
+
                     [self.nearbyStations addObject:station];
                 }
             } else {
@@ -82,7 +89,7 @@ NSString * const longitudeKey = @"long";
                 err = [NSError errorWithDomain:@"Server error" code:1 userInfo:nil];
             }
         } else {
-            NSLog(@"error was returned for getNearbyStations");
+            NSLog(@"error was returned for getNearbyStations: %@", err);
         }
         if (block){
             block(self.nearbyStations, err);

@@ -10,6 +10,7 @@
 #import "StationChoiceViewController.h"
 #import "BartStationStore.h"
 #import "OnTimeNotification.h"
+#import "OnTimeStationMapAnnotation.h"
 
 // Navigation bar related constants
 static NSString * const OnTimeTitle = @"OnTime Bart";
@@ -50,6 +51,7 @@ static NSString * const errorCodeKey = @"errorCode";
     NSDictionary *notificationData_;
     CLLocationManager *locationManager_;
     NSMutableSet *tableRowsToUpdate_;
+    OnTimeStationMapAnnotation *sourceStationAnnotation_;
 }
 
 // handles the notification data retrieved from the server response
@@ -225,11 +227,29 @@ static NSString * const errorCodeKey = @"errorCode";
     
     // block code to execute when the selection is made
     void (^stationSelectionMade)() = ^void(NSInteger stationIndex) {
-        [[BartStationStore sharedStore] selectStation:stationIndex inGroup:groupIndex];
-
+        [[BartStationStore sharedStore] selectStation:stationIndex
+                                              inGroup:groupIndex];
         // Record that the table row designated by the given index path needs to
         // be updated.
         [tableRowsToUpdate_ addObject:indexPath];
+
+        if (groupIndex == 0) {
+            // If it was the source station that was selected, create a map
+            // annotation that points to the source destination
+            Station *selectedSourceStation =
+                [[BartStationStore sharedStore] getSelecedStation:groupIndex];
+
+            // Create an annotation if it doesn't already exist. Else simply
+            // update the annotation coordinate which will get relfected in the
+            // map view.
+            if (!sourceStationAnnotation_) {
+                sourceStationAnnotation_ =
+                    [[OnTimeStationMapAnnotation alloc] initWithCoordinate:selectedSourceStation.location];
+                [userMapView addAnnotation:sourceStationAnnotation_];
+            } else {
+                sourceStationAnnotation_.coordinate = selectedSourceStation.location;
+            }
+        }
     };
     StationChoiceViewController *scvc = [[StationChoiceViewController alloc]
                                          initWithStations:stations
