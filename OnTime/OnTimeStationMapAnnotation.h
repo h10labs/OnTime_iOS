@@ -13,8 +13,11 @@
 
 // Designated initializer
 - (id)initWithCoordinate:(CLLocationCoordinate2D)coordinate
-               withTitle:(NSString *)title;
+               withTitle:(NSString *)title
+            withSubtitle:(NSString *)subtitle;
 
 @property (nonatomic) CLLocationCoordinate2D coordinate;
 @property (nonatomic, strong) NSString *title;
+@property (nonatomic, strong) NSString *subtitle;
+
 @end

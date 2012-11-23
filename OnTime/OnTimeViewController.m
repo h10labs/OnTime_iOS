@@ -76,7 +76,8 @@ static NSString * const errorCodeKey = @"errorCode";
     if (self) {
         locationManager_ = [[CLLocationManager alloc] init];
         [locationManager_ setDesiredAccuracy:kCLLocationAccuracyHundredMeters];
-        
+        [locationManager_ setDistanceFilter:100];
+
         // Set the initial notification data.
         notificationData_ = notificationData;
 
@@ -99,6 +100,7 @@ static NSString * const errorCodeKey = @"errorCode";
 
 
 #pragma mark - view cycle methods
+
 
 - (void)viewDidLoad {
    [userMapView setShowsUserLocation:YES];
@@ -264,6 +266,7 @@ static NSString * const errorCodeKey = @"errorCode";
                     [[OnTimeStationMapAnnotation alloc]
                      initWithCoordinate:selectedSourceStation.location
                               withTitle:selectedSourceStation.stationName
+                           withSubtitle:selectedSourceStation.streetAddress
                      ];
                 [userMapView addAnnotation:sourceStationAnnotation_];
             } else {
@@ -275,6 +278,7 @@ static NSString * const errorCodeKey = @"errorCode";
                                        animated:YES];
                 sourceStationAnnotation_.coordinate = selectedSourceStation.location;
                 sourceStationAnnotation_.title = selectedSourceStation.stationName;
+                sourceStationAnnotation_.subtitle = selectedSourceStation.streetAddress;
             }
         }
     };
