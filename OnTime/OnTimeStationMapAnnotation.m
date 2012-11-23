@@ -11,18 +11,22 @@
 @implementation OnTimeStationMapAnnotation
 
 @synthesize coordinate = coordinate_;
+@synthesize title = title_;
 
-- (id)initWithCoordinate:(CLLocationCoordinate2D)coordinate {
+- (id)initWithCoordinate:(CLLocationCoordinate2D)coordinate
+               withTitle:(NSString *)title {
     self = [super init];
     if (self) {
         coordinate_ = coordinate;
+        title_ = title;
     }
     return self;
 }
 
 - (id)init {
-    // Invalid coordinate
-    return [self initWithCoordinate:CLLocationCoordinate2DMake(0, 0)];
+    // Invalid annotation
+    return [self initWithCoordinate:CLLocationCoordinate2DMake(0, 0)
+                          withTitle:nil];
 }
 
 @end

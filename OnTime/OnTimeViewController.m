@@ -112,6 +112,23 @@ static NSString * const errorCodeKey = @"errorCode";
         [tableView reloadRowsAtIndexPaths:[tableRowsToUpdate_ allObjects]
                          withRowAnimation:UITableViewRowAnimationRight];
         [tableRowsToUpdate_ removeAllObjects];
+
+        // Animate the map region change since when the table rows update is
+        // required, then it also means that the map annotation location
+        // has changed.
+        CLLocation *stationLocation = [[CLLocation alloc]
+                                       initWithCoordinate:sourceStationAnnotation_.coordinate
+                                       altitude:0
+                                       horizontalAccuracy:0
+                                       verticalAccuracy:-1
+                                       timestamp:[NSDate date]];
+        CLLocationDistance distance =
+            [locationManager_.location distanceFromLocation:stationLocation];
+        MKCoordinateRegion region =
+        MKCoordinateRegionMakeWithDistance(locationManager_.location.coordinate,
+                                           distance * 2,
+                                           distance * 2);
+        [userMapView setRegion:region animated:YES];
     }
 }
 
@@ -244,10 +261,20 @@ static NSString * const errorCodeKey = @"errorCode";
             // map view.
             if (!sourceStationAnnotation_) {
                 sourceStationAnnotation_ =
-                    [[OnTimeStationMapAnnotation alloc] initWithCoordinate:selectedSourceStation.location];
+                    [[OnTimeStationMapAnnotation alloc]
+                     initWithCoordinate:selectedSourceStation.location
+                              withTitle:selectedSourceStation.stationName
+                     ];
                 [userMapView addAnnotation:sourceStationAnnotation_];
             } else {
+                // If the callout view is displayed, deselecting the
+                // annotation closes it. This is done so that the call out view
+                // is not going to be consistently shown even when we change
+                // the annotation title dynamically.
+                [userMapView deselectAnnotation:sourceStationAnnotation_
+                                       animated:YES];
                 sourceStationAnnotation_.coordinate = selectedSourceStation.location;
+                sourceStationAnnotation_.title = selectedSourceStation.stationName;
             }
         }
     };
