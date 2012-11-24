@@ -52,6 +52,7 @@ static NSString * const errorCodeKey = @"errorCode";
     CLLocationManager *locationManager_;
     NSMutableSet *tableRowsToUpdate_;
     OnTimeStationMapAnnotation *sourceStationAnnotation_;
+    OnTimeStationMapAnnotation *targetStationAnnotation_;
 }
 
 // handles the notification data retrieved from the server response
@@ -59,6 +60,7 @@ static NSString * const errorCodeKey = @"errorCode";
 
 // makes a notification request to the server with the given request data
 - (void)makeNotificationRequest:(NSDictionary *)requestData;
+
 
 @end
 
@@ -87,6 +89,9 @@ static NSString * const errorCodeKey = @"errorCode";
 
         // Set navigation bar title.
         self.navigationItem.title = OnTimeTitle;
+
+        sourceStationAnnotation_ = [[OnTimeStationMapAnnotation alloc] init];
+        targetStationAnnotation_ = [[OnTimeStationMapAnnotation alloc] init];
     }
     return self;
 }
@@ -111,26 +116,30 @@ static NSString * const errorCodeKey = @"errorCode";
 
     // Update the rows that needs to be updated.
     if ([tableRowsToUpdate_ count] > 0) {
+        NSIndexPath *sourceStationIndexPath = [NSIndexPath indexPathForRow:0
+                                                                inSection:0];
+        if ([tableRowsToUpdate_ containsObject:sourceStationIndexPath]) {
+            // Animate the map region change since when the table rows update is
+            // required, then it also means that the map annotation location
+            // has changed.
+            CLLocation *stationLocation =
+                [[CLLocation alloc] initWithCoordinate:sourceStationAnnotation_.coordinate
+                                              altitude:0
+                                    horizontalAccuracy:0
+                                      verticalAccuracy:-1
+                                             timestamp:[NSDate date]];
+            CLLocationDistance distance = [locationManager_.location
+                                           distanceFromLocation:stationLocation];
+            MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(locationManager_.location.coordinate,
+                                                                           distance * 2,
+                                                                           distance * 2);
+            [userMapView setRegion:region animated:YES];
+        }
+
+        // Animate the row updates
         [tableView reloadRowsAtIndexPaths:[tableRowsToUpdate_ allObjects]
                          withRowAnimation:UITableViewRowAnimationRight];
         [tableRowsToUpdate_ removeAllObjects];
-
-        // Animate the map region change since when the table rows update is
-        // required, then it also means that the map annotation location
-        // has changed.
-        CLLocation *stationLocation = [[CLLocation alloc]
-                                       initWithCoordinate:sourceStationAnnotation_.coordinate
-                                       altitude:0
-                                       horizontalAccuracy:0
-                                       verticalAccuracy:-1
-                                       timestamp:[NSDate date]];
-        CLLocationDistance distance =
-            [locationManager_.location distanceFromLocation:stationLocation];
-        MKCoordinateRegion region =
-        MKCoordinateRegionMakeWithDistance(locationManager_.location.coordinate,
-                                           distance * 2,
-                                           distance * 2);
-        [userMapView setRegion:region animated:YES];
     }
 }
 
@@ -252,34 +261,34 @@ static NSString * const errorCodeKey = @"errorCode";
         // be updated.
         [tableRowsToUpdate_ addObject:indexPath];
 
-        if (groupIndex == 0) {
-            // If it was the source station that was selected, create a map
-            // annotation that points to the source destination
-            Station *selectedSourceStation =
-                [[BartStationStore sharedStore] getSelecedStation:groupIndex];
+        // Create a map annotation that points to the selected station
+        // destination.
+        Station *selectedStation =
+            [[BartStationStore sharedStore] getSelecedStation:groupIndex];
 
-            // Create an annotation if it doesn't already exist. Else simply
-            // update the annotation coordinate which will get relfected in the
-            // map view.
-            if (!sourceStationAnnotation_) {
-                sourceStationAnnotation_ =
-                    [[OnTimeStationMapAnnotation alloc]
-                     initWithCoordinate:selectedSourceStation.location
-                              withTitle:selectedSourceStation.stationName
-                           withSubtitle:selectedSourceStation.streetAddress
-                     ];
-                [userMapView addAnnotation:sourceStationAnnotation_];
-            } else {
-                // If the callout view is displayed, deselecting the
-                // annotation closes it. This is done so that the call out view
-                // is not going to be consistently shown even when we change
-                // the annotation title dynamically.
-                [userMapView deselectAnnotation:sourceStationAnnotation_
-                                       animated:YES];
-                sourceStationAnnotation_.coordinate = selectedSourceStation.location;
-                sourceStationAnnotation_.title = selectedSourceStation.stationName;
-                sourceStationAnnotation_.subtitle = selectedSourceStation.streetAddress;
-            }
+        OnTimeStationMapAnnotation *stationAnnotation = nil;
+        if (groupIndex == 0) {
+            stationAnnotation =  sourceStationAnnotation_;
+        } else {
+            stationAnnotation = targetStationAnnotation_;
+        }
+
+        // Create an annotation if it doesn't already exist. Else simply
+        // update the annotation coordinate which will get relfected in the
+        // map view.
+        stationAnnotation.coordinate = selectedStation.location;
+        stationAnnotation.title = selectedStation.stationName;
+        stationAnnotation.subtitle = selectedStation.streetAddress;
+
+        // If the callout view is displayed, deselecting the
+        // annotation closes it. This is done so that the call out view
+        // is not going to be consistently shown even when we change
+        // the annotation title dynamically.
+        if ([userMapView.annotations containsObject:stationAnnotation]) {
+            [userMapView deselectAnnotation:stationAnnotation
+                                   animated:YES];
+        } else {
+            [userMapView addAnnotation:stationAnnotation];
         }
     };
     StationChoiceViewController *scvc = [[StationChoiceViewController alloc]
