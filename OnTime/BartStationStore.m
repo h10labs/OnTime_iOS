@@ -24,7 +24,7 @@ NSString * const stationAddressKey = @"address";
 NSString * const stationLocationKey = @"location";
 
 // keys for notification request
-NSString * const methodKey = @"method";
+NSString * const distanceModeKey = @"mode";
 NSString * const sourceStationKey = @"start";
 NSString * const destinationStationKey = @"end";
 NSString * const latitudeKey = @"lat";

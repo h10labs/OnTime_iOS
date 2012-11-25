@@ -273,9 +273,8 @@ static NSString * const errorCodeKey = @"errorCode";
             stationAnnotation = targetStationAnnotation_;
         }
 
-        // Create an annotation if it doesn't already exist. Else simply
-        // update the annotation coordinate which will get relfected in the
-        // map view.
+        // Simply update the annotation coordinate which will get relfected
+        // in the map view.
         stationAnnotation.coordinate = selectedStation.location;
         stationAnnotation.title = selectedStation.stationName;
         stationAnnotation.subtitle = selectedStation.streetAddress;
@@ -307,10 +306,11 @@ static NSString * const errorCodeKey = @"errorCode";
 
 
 - (IBAction)requestNotification:(id)sender {
-    NSString *methodString = [methodToGetToStation
-                              titleForSegmentAtIndex:[methodToGetToStation selectedSegmentIndex]];
     NSMutableDictionary *requestData = [NSMutableDictionary dictionary];
-    requestData[methodKey] = methodString;
+
+    // Method to get to the station is shared constants between the client
+    // and the server.
+    requestData[distanceModeKey] = @([methodToGetToStation selectedSegmentIndex]);
     
     BartStation *sourceStation = (BartStation *)[[BartStationStore sharedStore]
                                                  getSelecedStation:0];

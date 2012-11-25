@@ -11,7 +11,7 @@
 #import "OnTimeManagerProtocol.h"
 
 extern const NSInteger limitedStationNumber;
-extern NSString * const methodKey;
+extern NSString * const distanceModeKey;
 extern NSString * const sourceStationKey;
 extern NSString * const destinationStationKey;
 extern NSString * const latitudeKey;

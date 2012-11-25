@@ -38,6 +38,8 @@ NSString * const kStartId = @"startId";
 NSString * const kDestinationId = @"destinationId";
 NSString * const kSnoozableKey = @"isSnoozable";
 
+// dictionary for the different modes
+static NSDictionary *modeDictionary = nil;
 
 @interface OnTimeNotification () {
     NSArray *notificationEstimates;
@@ -54,12 +56,24 @@ NSString * const kSnoozableKey = @"isSnoozable";
 - (id)initWithNotificationData:(NSDictionary *)notificationData {
     self = [super init];
     if (self) {
+        if (!modeDictionary) {
+            modeDictionary = @{@0:@"walking", @1:@"biking", @2:@"driving"};
+        }
+
         bufferTime = notificationData[bufferTimeKey];
         durationTime = notificationData[durationKey];
-        mode = notificationData[modeKey];
         startStationInfo = notificationData[startInfoKey];
         destinationStationInfo = notificationData[destinationInfoKey];
         notificationEstimates = notificationData[estimateKey];
+
+        mode = modeDictionary[notificationData[modeKey]];
+        if (!mode) {
+            // Log this case since it's unexpected.
+            NSLog(@"Unexpected mode was returned by server: %@",
+                  notificationData[modeKey]);
+            // Set the default mode string.
+            mode = @"getting";
+        }
     }
     return self;
 }
