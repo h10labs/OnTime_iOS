@@ -407,9 +407,14 @@ static NSString * const errorCodeKey = @"errorCode";
         [[OnTimeNotification alloc] initWithNotificationData:notificationData];
     [notification scheduleNotification:0];
 
-    // reset current selection since the notification was successful
+    // Reset current selection since the notification was successful
     [[BartStationStore sharedStore] resetCurrentSelectedStations];
     [tableView reloadData];
+
+    // Also remove the map annotations since the station selections are now
+    // resetted.
+    [userMapView removeAnnotations:@[sourceStationAnnotation_,
+                                     targetStationAnnotation_]];
 }
 
 - (void)processPendingNotification:(NSDictionary *)notificationData {
