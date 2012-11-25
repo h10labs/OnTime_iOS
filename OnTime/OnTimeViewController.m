@@ -46,13 +46,17 @@ static NSString * const noNotificationTitle = @"No Notification";
 static NSString * const successKey = @"success";
 static NSString * const errorCodeKey = @"errorCode";
 
+// Distance threshold for the updated user location relative to
+// the previously recorded user location. If this threshold is exceeded, the
+// updated user location is processed. This is expressed in meters.
+const static CLLocationDistance userLocationDistanceThreshold = 200;
 
 @interface OnTimeViewController () {
     NSDictionary *notificationData_;
-    CLLocationManager *locationManager_;
     NSMutableSet *tableRowsToUpdate_;
     OnTimeStationMapAnnotation *sourceStationAnnotation_;
     OnTimeStationMapAnnotation *targetStationAnnotation_;
+    CLLocation *lastRecordedLocation_;
 }
 
 // Handles the notification data retrieved from the server response.
@@ -79,10 +83,6 @@ static NSString * const errorCodeKey = @"errorCode";
          notification:(NSDictionary *)notificationData {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        locationManager_ = [[CLLocationManager alloc] init];
-        [locationManager_ setDesiredAccuracy:kCLLocationAccuracyHundredMeters];
-        [locationManager_ setDistanceFilter:100];
-
         // Set the initial notification data.
         notificationData_ = notificationData;
 
@@ -132,9 +132,9 @@ static NSString * const errorCodeKey = @"errorCode";
                                     horizontalAccuracy:0
                                       verticalAccuracy:-1
                                              timestamp:[NSDate date]];
-            CLLocationDistance distance = [locationManager_.location
+            CLLocationDistance distance = [userMapView.userLocation.location
                                            distanceFromLocation:stationLocation];
-            MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(locationManager_.location.coordinate,
+            MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(userMapView.userLocation.coordinate,
                                                                            distance * 2,
                                                                            distance * 2);
             [userMapView setRegion:region animated:YES];
@@ -156,16 +156,22 @@ static NSString * const errorCodeKey = @"errorCode";
 
 
 - (void)mapView:(MKMapView *)view didUpdateUserLocation:(MKUserLocation *)userLocation {
-    static BOOL updateInProgress = NO;
-    if (updateInProgress) {
-        [activityIndicator stopAnimating];
-        return;
+    // Check if the updated location is farther than the thredhold distance
+    // from the previously recorded location. If not, then simply do nothing.
+    if (lastRecordedLocation_) {
+        CLLocationDistance distance =
+            [lastRecordedLocation_ distanceFromLocation:userLocation.location];
+        if (distance <= userLocationDistanceThreshold) {
+            NSLog(@"Not processing the user location because the distance is %f <= %f",
+                  distance, userLocationDistanceThreshold);
+            return;
+        }
     }
-    updateInProgress = YES;
-    [activityIndicator startAnimating];
 
-    CLLocation *location = [userLocation location];
-    CLLocationCoordinate2D coords = [location coordinate];
+    [activityIndicator startAnimating];
+    lastRecordedLocation_ = [userLocation location];
+
+    CLLocationCoordinate2D coords = lastRecordedLocation_.coordinate;
     MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(coords, 500, 500);
     [userMapView setRegion:region animated:YES];
 
@@ -186,9 +192,8 @@ static NSString * const errorCodeKey = @"errorCode";
             [self processPendingNotification:notificationData_];
             notificationData_ = nil;
         }
-        updateInProgress = NO;
     };
-    [[BartStationStore sharedStore] getNearbyStations:location
+    [[BartStationStore sharedStore] getNearbyStations:lastRecordedLocation_
                                        withCompletion:displayNearbyStations];
 }
 
@@ -346,7 +351,7 @@ static NSString * const errorCodeKey = @"errorCode";
     requestData[sourceStationKey] = sourceStation.stationId;
     requestData[destinationStationKey] = destinationStation.stationId;
     
-    CLLocationCoordinate2D coords = [[locationManager_ location] coordinate];
+    CLLocationCoordinate2D coords = userMapView.userLocation.coordinate;
     NSString *longitude = [NSString stringWithFormat:@"%f", coords.longitude];
     NSString *latitude = [NSString stringWithFormat:@"%f", coords.latitude];
     requestData[longitudeKey] = longitude;
@@ -462,7 +467,7 @@ static NSString * const errorCodeKey = @"errorCode";
         requestData[destinationStationKey] = notificationData[kDestinationId];
 
         // TODO: Duplicated code.
-        CLLocationCoordinate2D coords = [[locationManager_ location] coordinate];
+        CLLocationCoordinate2D coords = userMapView.userLocation.coordinate;
         NSString *longitude = [NSString stringWithFormat:@"%f", coords.longitude];
         NSString *latitude = [NSString stringWithFormat:@"%f", coords.latitude];
         requestData[longitudeKey] = longitude;
