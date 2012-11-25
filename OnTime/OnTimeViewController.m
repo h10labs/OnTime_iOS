@@ -55,12 +55,15 @@ static NSString * const errorCodeKey = @"errorCode";
     OnTimeStationMapAnnotation *targetStationAnnotation_;
 }
 
-// handles the notification data retrieved from the server response
+// Handles the notification data retrieved from the server response.
 - (void)handleNotificationData:(NSDictionary *)notificationData;
 
-// makes a notification request to the server with the given request data
+// Makes a notification request to the server with the given request data.
 - (void)makeNotificationRequest:(NSDictionary *)requestData;
 
+
+// Configures the UI given the current state of the view controlloer.
+- (void)configureUI;
 
 @end
 
@@ -108,7 +111,8 @@ static NSString * const errorCodeKey = @"errorCode";
 
 
 - (void)viewDidLoad {
-   [userMapView setShowsUserLocation:YES];
+    [userMapView setShowsUserLocation:YES];
+    [self configureUI];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -289,6 +293,10 @@ static NSString * const errorCodeKey = @"errorCode";
         } else {
             [userMapView addAnnotation:stationAnnotation];
         }
+
+        // Since the station selection has been made, the UI needs to be
+        // configured.
+        [self configureUI];
     };
     StationChoiceViewController *scvc = [[StationChoiceViewController alloc]
                                          initWithStations:stations
@@ -310,7 +318,7 @@ static NSString * const errorCodeKey = @"errorCode";
 
     // Method to get to the station is shared constants between the client
     // and the server.
-    requestData[distanceModeKey] = @([methodToGetToStation selectedSegmentIndex]);
+    requestData[distanceModeKey] = @(methodToGetToStation.selectedSegmentIndex);
     
     BartStation *sourceStation = (BartStation *)[[BartStationStore sharedStore]
                                                  getSelecedStation:0];
@@ -350,6 +358,18 @@ static NSString * const errorCodeKey = @"errorCode";
 
 #pragma mark - private helper methods
 
+
+- (void)configureUI {
+    BartStation *sourceStation = (BartStation *)[[BartStationStore sharedStore]
+                                                 getSelecedStation:0];
+    BartStation *destinationStation = (BartStation *)[[BartStationStore sharedStore]
+                                                      getSelecedStation:1];
+    if (!sourceStation || !destinationStation){
+        requestNotificationButton.enabled = NO;
+    } else {
+        requestNotificationButton.enabled = YES;
+    }
+}
 
 - (void)makeNotificationRequest:(NSDictionary *)requestData {
     void (^registerNotification)(NSDictionary *notificationData, NSError *err) =
@@ -410,6 +430,13 @@ static NSString * const errorCodeKey = @"errorCode";
     // Reset current selection since the notification was successful
     [[BartStationStore sharedStore] resetCurrentSelectedStations];
     [tableView reloadData];
+
+    // Since the station selection has been reset, the UI needs to be
+    // configured.
+    [self configureUI];
+
+    // Reset the segment control.
+    methodToGetToStation.selectedSegmentIndex = 0;
 
     // Also remove the map annotations since the station selections are now
     // resetted.
