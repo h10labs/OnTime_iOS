@@ -462,10 +462,10 @@ const static CLLocationDistance userLocationDistanceThreshold = 200;
         } else {
             startStationId = notificationData[kStartId];
         }
-
         requestData[sourceStationKey] = startStationId;
         requestData[destinationStationKey] = notificationData[kDestinationId];
 
+        requestData[distanceModeKey] = notificationData[kTravelModeKey];
         // TODO: Duplicated code.
         CLLocationCoordinate2D coords = userMapView.userLocation.coordinate;
         NSString *longitude = [NSString stringWithFormat:@"%f", coords.longitude];

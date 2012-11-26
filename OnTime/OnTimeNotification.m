@@ -37,6 +37,7 @@ static NSString * const stationIdKey = @"id";
 NSString * const kStartId = @"startId";
 NSString * const kDestinationId = @"destinationId";
 NSString * const kSnoozableKey = @"isSnoozable";
+NSString * const kTravelModeKey = @"travelMode";
 
 // dictionary for the different modes
 static NSDictionary *modeDictionary = nil;
@@ -45,9 +46,9 @@ static NSDictionary *modeDictionary = nil;
     NSArray *notificationEstimates;
     NSNumber *durationTime;
     NSNumber *bufferTime;
-    NSString *mode;
     NSDictionary *startStationInfo;
     NSDictionary *destinationStationInfo;
+    NSNumber *travelMode;
 }
 @end
 
@@ -65,15 +66,7 @@ static NSDictionary *modeDictionary = nil;
         startStationInfo = notificationData[startInfoKey];
         destinationStationInfo = notificationData[destinationInfoKey];
         notificationEstimates = notificationData[estimateKey];
-
-        mode = modeDictionary[notificationData[modeKey]];
-        if (!mode) {
-            // Log this case since it's unexpected.
-            NSLog(@"Unexpected mode was returned by server: %@",
-                  notificationData[modeKey]);
-            // Set the default mode string.
-            mode = @"getting";
-        }
+        travelMode = notificationData[modeKey];
     }
     return self;
 }
@@ -114,6 +107,16 @@ static NSDictionary *modeDictionary = nil;
     NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:scheduledTimeInSeconds];
     NSString *scheduledTimeString = [formatter stringFromDate:scheduledTime];
 
+
+    NSString *travelModeString = modeDictionary[travelMode];
+    if (!travelModeString) {
+        // Log this case since it's unexpected.
+        NSLog(@"Unexpected mode was returned by server: %@",
+              travelMode);
+        // Set the default mode string.
+        travelModeString = @"getting";
+    }
+
     // Create the alert to inform users what time they will have to leave for
     // the station.
     UIAlertView *av = [[UIAlertView alloc] initWithTitle:notificationTitle
@@ -122,7 +125,7 @@ static NSDictionary *modeDictionary = nil;
                                                           trainDestinationName,
                                                           startStationInfo[stationNameKey],
                                                           arrivalTimeString,
-                                                          mode,
+                                                          travelModeString,
                                                           [durationTime intValue] / 60]
                                                 delegate:nil
                                        cancelButtonTitle:@"OK"
@@ -133,7 +136,8 @@ static NSDictionary *modeDictionary = nil;
     // First create user info dictionary
     NSDictionary *userInfo = @{kStartId: startStationInfo[stationIdKey],
                                kDestinationId: destinationStationInfo[stationIdKey],
-                               kSnoozableKey: @YES};
+                               kSnoozableKey: @YES,
+                               kTravelModeKey: travelMode};
     UILocalNotification *notification = [[UILocalNotification alloc] init];
     [notification setFireDate:scheduledTime];
     [notification setAlertAction:snoozeLabel];
@@ -141,7 +145,7 @@ static NSDictionary *modeDictionary = nil;
                                 trainDestinationName,
                                 startStationInfo[stationNameKey],
                                 arrivalTimeString,
-                                mode,
+                                travelModeString,
                                 [durationTime intValue] / 60]];
     [notification setHasAction:YES];
     [notification setUserInfo:userInfo];

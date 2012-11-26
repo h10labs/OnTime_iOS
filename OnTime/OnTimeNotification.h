@@ -11,6 +11,7 @@
 extern NSString * const kStartId;
 extern NSString * const kDestinationId;
 extern NSString * const kSnoozableKey;
+extern NSString * const kTravelModeKey;
 
 @interface OnTimeNotification : NSObject
 
