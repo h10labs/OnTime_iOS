@@ -436,10 +436,6 @@ const static CLLocationDistance userLocationDistanceThreshold = 200;
     [[BartStationStore sharedStore] resetCurrentSelectedStations];
     [tableView reloadData];
 
-    // Since the station selection has been reset, the UI needs to be
-    // configured.
-    [self configureUI];
-
     // Reset the segment control.
     methodToGetToStation.selectedSegmentIndex = 0;
 
@@ -447,6 +443,10 @@ const static CLLocationDistance userLocationDistanceThreshold = 200;
     // resetted.
     [userMapView removeAnnotations:@[sourceStationAnnotation_,
                                      targetStationAnnotation_]];
+
+    // Since the station selection has been reset, the UI needs to be
+    // configured.
+    [self configureUI];
 }
 
 - (void)processPendingNotification:(NSDictionary *)notificationData {
