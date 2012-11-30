@@ -11,9 +11,9 @@
 static NSString * const notificationTitle = @"OnTime!";
 static NSString * const snoozeLabel = @"Snooze";
 static NSString * const notificationMessage =
-    @"Leave at %@ to catch %@ at %@; %@ there will take %d minute(s).";
+    @"Leave at %@ to catch %@ at %@ arriving at %@; %@ there will take %d minute(s).";
 static NSString * const reminderMessage =
-    @"Leave now to catch %@ at %@; %@ there will take %d minute(s).";
+    @"Leave now to catch %@ at %@ arriving at %@; %@ there will take %d minute(s).";
 
 static NSString * const arrivalTimeKey = @"arrivalTimeInMinutes";
 static NSString * const destinationKey = @"destination";
@@ -37,15 +37,18 @@ static NSString * const stationIdKey = @"id";
 NSString * const kStartId = @"startId";
 NSString * const kDestinationId = @"destinationId";
 NSString * const kSnoozableKey = @"isSnoozable";
+NSString * const kTravelModeKey = @"travelMode";
 
+// dictionary for the different modes
+static NSDictionary *modeDictionary = nil;
 
 @interface OnTimeNotification () {
     NSArray *notificationEstimates;
     NSNumber *durationTime;
     NSNumber *bufferTime;
-    NSString *mode;
     NSDictionary *startStationInfo;
     NSDictionary *destinationStationInfo;
+    NSNumber *travelMode;
 }
 @end
 
@@ -54,12 +57,16 @@ NSString * const kSnoozableKey = @"isSnoozable";
 - (id)initWithNotificationData:(NSDictionary *)notificationData {
     self = [super init];
     if (self) {
+        if (!modeDictionary) {
+            modeDictionary = @{@0:@"walking", @1:@"biking", @2:@"driving"};
+        }
+
         bufferTime = notificationData[bufferTimeKey];
         durationTime = notificationData[durationKey];
-        mode = notificationData[modeKey];
         startStationInfo = notificationData[startInfoKey];
         destinationStationInfo = notificationData[destinationInfoKey];
         notificationEstimates = notificationData[estimateKey];
+        travelMode = notificationData[modeKey];
     }
     return self;
 }
@@ -74,51 +81,75 @@ NSString * const kSnoozableKey = @"isSnoozable";
     // Retrieve the specified notification data.
     NSDictionary *notificationData = notificationEstimates[notificationIndex];
 
-    NSString *destination = notificationData[destinationKey];
+    NSString *trainDestinationName = notificationData[destinationKey];
+
+    // setting up date formatter
+    static NSDateFormatter *formatter;
+    if (!formatter) {
+        formatter = [[NSDateFormatter alloc] init];
+        NSLocale *locale = [NSLocale currentLocale];
+        NSString *dateFormat = [NSDateFormatter dateFormatFromTemplate:dateFormatTempalte
+                                                               options:0
+                                                                locale:locale];
+        [formatter setDateFormat:dateFormat];
+        [formatter setLocale:locale];
+    }
+
+    // Convert the arrival time into a string.
     NSInteger arrivalTimeInSeconds =
         [[notificationData objectForKey:arrivalTimeKey] intValue] * 60;
+    NSDate *arrivalTime = [NSDate dateWithTimeIntervalSinceNow:arrivalTimeInSeconds];
+    NSString *arrivalTimeString = [formatter stringFromDate:arrivalTime];
+
+    // Convert the scheduled time for departure to the station into a string.
     NSInteger scheduledTimeInSeconds = arrivalTimeInSeconds - [durationTime intValue] -
         [bufferTime intValue];
     NSDate *scheduledTime = [NSDate dateWithTimeIntervalSinceNow:scheduledTimeInSeconds];
-
-    // setting up date formatter
-    NSLocale *locale = [NSLocale currentLocale];
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    NSString *dateFormat = [NSDateFormatter dateFormatFromTemplate:dateFormatTempalte
-                                                           options:0
-                                                            locale:locale];
-    [formatter setDateFormat:dateFormat];
-    [formatter setLocale:locale];
     NSString *scheduledTimeString = [formatter stringFromDate:scheduledTime];
 
+
+    NSString *travelModeString = modeDictionary[travelMode];
+    if (!travelModeString) {
+        // Log this case since it's unexpected.
+        NSLog(@"Unexpected mode was returned by server: %@",
+              travelMode);
+        // Set the default mode string.
+        travelModeString = @"getting";
+    }
+
+    // Create the alert to inform users what time they will have to leave for
+    // the station.
     UIAlertView *av = [[UIAlertView alloc] initWithTitle:notificationTitle
                                                  message:[NSString stringWithFormat:notificationMessage,
                                                           scheduledTimeString,
-                                                          destination,
+                                                          trainDestinationName,
                                                           startStationInfo[stationNameKey],
-                                                          mode,
+                                                          arrivalTimeString,
+                                                          travelModeString,
                                                           [durationTime intValue] / 60]
                                                 delegate:nil
                                        cancelButtonTitle:@"OK"
                                        otherButtonTitles:nil];
     [av show];
 
-    // create local notification to notify at the appropriate time
-
-    // first create user info dictionary
+    // Create local notification to notify at the appropriate time.
+    // First create user info dictionary
     NSDictionary *userInfo = @{kStartId: startStationInfo[stationIdKey],
                                kDestinationId: destinationStationInfo[stationIdKey],
-                               kSnoozableKey: @YES};
+                               kSnoozableKey: @YES,
+                               kTravelModeKey: travelMode};
     UILocalNotification *notification = [[UILocalNotification alloc] init];
     [notification setFireDate:scheduledTime];
     [notification setAlertAction:snoozeLabel];
     [notification setAlertBody:[NSString stringWithFormat:reminderMessage,
-                                destination,
+                                trainDestinationName,
                                 startStationInfo[stationNameKey],
-                                mode,
+                                arrivalTimeString,
+                                travelModeString,
                                 [durationTime intValue] / 60]];
     [notification setHasAction:YES];
     [notification setUserInfo:userInfo];
     [[UIApplication sharedApplication] scheduleLocalNotification:notification];
 }
+
 @end

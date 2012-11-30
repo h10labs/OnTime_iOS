@@ -46,21 +46,28 @@ static NSString * const noNotificationTitle = @"No Notification";
 static NSString * const successKey = @"success";
 static NSString * const errorCodeKey = @"errorCode";
 
+// Distance threshold for the updated user location relative to
+// the previously recorded user location. If this threshold is exceeded, the
+// updated user location is processed. This is expressed in meters.
+const static CLLocationDistance userLocationDistanceThreshold = 200;
 
 @interface OnTimeViewController () {
     NSDictionary *notificationData_;
-    CLLocationManager *locationManager_;
     NSMutableSet *tableRowsToUpdate_;
     OnTimeStationMapAnnotation *sourceStationAnnotation_;
     OnTimeStationMapAnnotation *targetStationAnnotation_;
+    CLLocation *lastRecordedLocation_;
 }
 
-// handles the notification data retrieved from the server response
+// Handles the notification data retrieved from the server response.
 - (void)handleNotificationData:(NSDictionary *)notificationData;
 
-// makes a notification request to the server with the given request data
+// Makes a notification request to the server with the given request data.
 - (void)makeNotificationRequest:(NSDictionary *)requestData;
 
+
+// Configures the UI given the current state of the view controlloer.
+- (void)configureUI;
 
 @end
 
@@ -76,10 +83,6 @@ static NSString * const errorCodeKey = @"errorCode";
          notification:(NSDictionary *)notificationData {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        locationManager_ = [[CLLocationManager alloc] init];
-        [locationManager_ setDesiredAccuracy:kCLLocationAccuracyHundredMeters];
-        [locationManager_ setDistanceFilter:100];
-
         // Set the initial notification data.
         notificationData_ = notificationData;
 
@@ -108,7 +111,8 @@ static NSString * const errorCodeKey = @"errorCode";
 
 
 - (void)viewDidLoad {
-   [userMapView setShowsUserLocation:YES];
+    [userMapView setShowsUserLocation:YES];
+    [self configureUI];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -128,9 +132,9 @@ static NSString * const errorCodeKey = @"errorCode";
                                     horizontalAccuracy:0
                                       verticalAccuracy:-1
                                              timestamp:[NSDate date]];
-            CLLocationDistance distance = [locationManager_.location
+            CLLocationDistance distance = [userMapView.userLocation.location
                                            distanceFromLocation:stationLocation];
-            MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(locationManager_.location.coordinate,
+            MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(userMapView.userLocation.coordinate,
                                                                            distance * 2,
                                                                            distance * 2);
             [userMapView setRegion:region animated:YES];
@@ -152,16 +156,22 @@ static NSString * const errorCodeKey = @"errorCode";
 
 
 - (void)mapView:(MKMapView *)view didUpdateUserLocation:(MKUserLocation *)userLocation {
-    static BOOL updateInProgress = NO;
-    if (updateInProgress) {
-        [activityIndicator stopAnimating];
-        return;
+    // Check if the updated location is farther than the thredhold distance
+    // from the previously recorded location. If not, then simply do nothing.
+    if (lastRecordedLocation_) {
+        CLLocationDistance distance =
+            [lastRecordedLocation_ distanceFromLocation:userLocation.location];
+        if (distance <= userLocationDistanceThreshold) {
+            NSLog(@"Not processing the user location because the distance is %f <= %f",
+                  distance, userLocationDistanceThreshold);
+            return;
+        }
     }
-    updateInProgress = YES;
-    [activityIndicator startAnimating];
 
-    CLLocation *location = [userLocation location];
-    CLLocationCoordinate2D coords = [location coordinate];
+    [activityIndicator startAnimating];
+    lastRecordedLocation_ = [userLocation location];
+
+    CLLocationCoordinate2D coords = lastRecordedLocation_.coordinate;
     MKCoordinateRegion region = MKCoordinateRegionMakeWithDistance(coords, 500, 500);
     [userMapView setRegion:region animated:YES];
 
@@ -182,9 +192,8 @@ static NSString * const errorCodeKey = @"errorCode";
             [self processPendingNotification:notificationData_];
             notificationData_ = nil;
         }
-        updateInProgress = NO;
     };
-    [[BartStationStore sharedStore] getNearbyStations:location
+    [[BartStationStore sharedStore] getNearbyStations:lastRecordedLocation_
                                        withCompletion:displayNearbyStations];
 }
 
@@ -273,9 +282,8 @@ static NSString * const errorCodeKey = @"errorCode";
             stationAnnotation = targetStationAnnotation_;
         }
 
-        // Create an annotation if it doesn't already exist. Else simply
-        // update the annotation coordinate which will get relfected in the
-        // map view.
+        // Simply update the annotation coordinate which will get relfected
+        // in the map view.
         stationAnnotation.coordinate = selectedStation.location;
         stationAnnotation.title = selectedStation.stationName;
         stationAnnotation.subtitle = selectedStation.streetAddress;
@@ -290,6 +298,10 @@ static NSString * const errorCodeKey = @"errorCode";
         } else {
             [userMapView addAnnotation:stationAnnotation];
         }
+
+        // Since the station selection has been made, the UI needs to be
+        // configured.
+        [self configureUI];
     };
     StationChoiceViewController *scvc = [[StationChoiceViewController alloc]
                                          initWithStations:stations
@@ -307,10 +319,11 @@ static NSString * const errorCodeKey = @"errorCode";
 
 
 - (IBAction)requestNotification:(id)sender {
-    NSString *methodString = [methodToGetToStation
-                              titleForSegmentAtIndex:[methodToGetToStation selectedSegmentIndex]];
     NSMutableDictionary *requestData = [NSMutableDictionary dictionary];
-    requestData[methodKey] = methodString;
+
+    // Method to get to the station is shared constants between the client
+    // and the server.
+    requestData[distanceModeKey] = @(methodToGetToStation.selectedSegmentIndex);
     
     BartStation *sourceStation = (BartStation *)[[BartStationStore sharedStore]
                                                  getSelecedStation:0];
@@ -338,7 +351,7 @@ static NSString * const errorCodeKey = @"errorCode";
     requestData[sourceStationKey] = sourceStation.stationId;
     requestData[destinationStationKey] = destinationStation.stationId;
     
-    CLLocationCoordinate2D coords = [[locationManager_ location] coordinate];
+    CLLocationCoordinate2D coords = userMapView.userLocation.coordinate;
     NSString *longitude = [NSString stringWithFormat:@"%f", coords.longitude];
     NSString *latitude = [NSString stringWithFormat:@"%f", coords.latitude];
     requestData[longitudeKey] = longitude;
@@ -350,6 +363,18 @@ static NSString * const errorCodeKey = @"errorCode";
 
 #pragma mark - private helper methods
 
+
+- (void)configureUI {
+    BartStation *sourceStation = (BartStation *)[[BartStationStore sharedStore]
+                                                 getSelecedStation:0];
+    BartStation *destinationStation = (BartStation *)[[BartStationStore sharedStore]
+                                                      getSelecedStation:1];
+    if (!sourceStation || !destinationStation){
+        requestNotificationButton.enabled = NO;
+    } else {
+        requestNotificationButton.enabled = YES;
+    }
+}
 
 - (void)makeNotificationRequest:(NSDictionary *)requestData {
     void (^registerNotification)(NSDictionary *notificationData, NSError *err) =
@@ -407,9 +432,21 @@ static NSString * const errorCodeKey = @"errorCode";
         [[OnTimeNotification alloc] initWithNotificationData:notificationData];
     [notification scheduleNotification:0];
 
-    // reset current selection since the notification was successful
+    // Reset current selection since the notification was successful
     [[BartStationStore sharedStore] resetCurrentSelectedStations];
     [tableView reloadData];
+
+    // Reset the segment control.
+    methodToGetToStation.selectedSegmentIndex = 0;
+
+    // Also remove the map annotations since the station selections are now
+    // resetted.
+    [userMapView removeAnnotations:@[sourceStationAnnotation_,
+                                     targetStationAnnotation_]];
+
+    // Since the station selection has been reset, the UI needs to be
+    // configured.
+    [self configureUI];
 }
 
 - (void)processPendingNotification:(NSDictionary *)notificationData {
@@ -425,12 +462,12 @@ static NSString * const errorCodeKey = @"errorCode";
         } else {
             startStationId = notificationData[kStartId];
         }
-
         requestData[sourceStationKey] = startStationId;
         requestData[destinationStationKey] = notificationData[kDestinationId];
 
+        requestData[distanceModeKey] = notificationData[kTravelModeKey];
         // TODO: Duplicated code.
-        CLLocationCoordinate2D coords = [[locationManager_ location] coordinate];
+        CLLocationCoordinate2D coords = userMapView.userLocation.coordinate;
         NSString *longitude = [NSString stringWithFormat:@"%f", coords.longitude];
         NSString *latitude = [NSString stringWithFormat:@"%f", coords.latitude];
         requestData[longitudeKey] = longitude;

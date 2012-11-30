@@ -9,9 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
 
-@interface Station : NSObject {
-    
-}
+@interface Station : NSObject
 
 @property (nonatomic, strong) NSString *stationId;
 @property (nonatomic, strong) NSString *stationName;

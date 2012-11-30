@@ -9,6 +9,7 @@
 #import "Station.h"
 
 @implementation Station
+
 @synthesize stationId;
 @synthesize stationName;
 @synthesize location;
@@ -17,4 +18,5 @@
 - (NSString *)description {
     return [NSString stringWithFormat:@"%@", [self stationName]];
 }
+
 @end
