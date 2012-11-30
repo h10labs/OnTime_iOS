@@ -25,6 +25,10 @@
 		6A9E6D2A1616D57300CFF4DD /* BartStationStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A9E6D291616D57200CFF4DD /* BartStationStore.m */; };
 		6AA5B21B16293E79001FA806 /* OnTimeNotification.m in Sources */ = {isa = PBXBuildFile; fileRef = 6AA5B21A16293E79001FA806 /* OnTimeNotification.m */; };
 		6ADF2585161D514B00CDEA2B /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6ADF2584161D514B00CDEA2B /* Default-568h@2x.png */; };
+		98AD70D81667F440002BF3B7 /* OnTime Logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 98AD70D71667F440002BF3B7 /* OnTime Logo.png */; };
+		98AD70DB1668003C002BF3B7 /* lowres.png in Resources */ = {isa = PBXBuildFile; fileRef = 98AD70DA1668003C002BF3B7 /* lowres.png */; };
+		98AD70DD166802F1002BF3B7 /* OnTime Logo 2.png in Resources */ = {isa = PBXBuildFile; fileRef = 98AD70DC166802F1002BF3B7 /* OnTime Logo 2.png */; };
+		98AD70DF166803D7002BF3B7 /* logo_57.png in Resources */ = {isa = PBXBuildFile; fileRef = 98AD70DE166803D7002BF3B7 /* logo_57.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +63,10 @@
 		6AA5B21916293E79001FA806 /* OnTimeNotification.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OnTimeNotification.h; sourceTree = "<group>"; };
 		6AA5B21A16293E79001FA806 /* OnTimeNotification.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OnTimeNotification.m; sourceTree = "<group>"; };
 		6ADF2584161D514B00CDEA2B /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		98AD70D71667F440002BF3B7 /* OnTime Logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "OnTime Logo.png"; sourceTree = "<group>"; };
+		98AD70DA1668003C002BF3B7 /* lowres.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lowres.png; sourceTree = "<group>"; };
+		98AD70DC166802F1002BF3B7 /* OnTime Logo 2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "OnTime Logo 2.png"; sourceTree = "<group>"; };
+		98AD70DE166803D7002BF3B7 /* logo_57.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo_57.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +88,10 @@
 		6A3CC461160EEE7700F4A12A = {
 			isa = PBXGroup;
 			children = (
+				98AD70DE166803D7002BF3B7 /* logo_57.png */,
+				98AD70DC166802F1002BF3B7 /* OnTime Logo 2.png */,
+				98AD70DA1668003C002BF3B7 /* lowres.png */,
+				98AD70D71667F440002BF3B7 /* OnTime Logo.png */,
 				6ADF2584161D514B00CDEA2B /* Default-568h@2x.png */,
 				6A3CC476160EEE7700F4A12A /* OnTime */,
 				6A3CC46F160EEE7700F4A12A /* Frameworks */,
@@ -225,6 +237,10 @@
 				6A3CC47B160EEE7700F4A12A /* InfoPlist.strings in Resources */,
 				6A3CC487160EEE7800F4A12A /* OnTimeViewController.xib in Resources */,
 				6ADF2585161D514B00CDEA2B /* Default-568h@2x.png in Resources */,
+				98AD70D81667F440002BF3B7 /* OnTime Logo.png in Resources */,
+				98AD70DB1668003C002BF3B7 /* lowres.png in Resources */,
+				98AD70DD166802F1002BF3B7 /* OnTime Logo 2.png in Resources */,
+				98AD70DF166803D7002BF3B7 /* logo_57.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -322,10 +338,14 @@
 		6A3CC48B160EEE7800F4A12A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer: Hiten Parmar (T53PDP9C76)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "OnTime/OnTime-Prefix.pch";
 				INFOPLIST_FILE = "OnTime/OnTime-Info.plist";
 				PRODUCT_NAME = ontime;
+				PROVISIONING_PROFILE = "0D40728F-25AC-40F8-95B0-47FC2A7FD890";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -333,12 +353,14 @@
 		6A3CC48C160EEE7800F4A12A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Daisuke Fujiwara";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Hiten Parmar (T53PDP9C76)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "OnTime/OnTime-Prefix.pch";
 				INFOPLIST_FILE = "OnTime/OnTime-Info.plist";
 				PRODUCT_NAME = ontime;
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "EBD9861F-C55D-4F0D-8503-00270CBBBFB2";
+				PROVISIONING_PROFILE = "0D40728F-25AC-40F8-95B0-47FC2A7FD890";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
